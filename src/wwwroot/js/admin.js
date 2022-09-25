@@ -65,32 +65,41 @@
         } else {
             window.tinymce.init({
                 selector: '#Content',
-                autoresize_min_height: 200,
-                plugins: 'autosave preview searchreplace visualchars image link media fullscreen code codesample table hr pagebreak autoresize nonbreaking anchor insertdatetime advlist lists textcolor wordcount imagetools colorpicker',
-                menubar: "edit view format insert table",
-                toolbar1: 'formatselect | bold italic blockquote forecolor backcolor | imageupload link | alignleft aligncenter alignright  | numlist bullist outdent indent | fullscreen',
-                selection_toolbar: 'bold italic | quicklink h2 h3 blockquote',
-                autoresize_bottom_margin: 0,
-                paste_data_images: true,
-                image_advtab: true,
+                // autoresize_min_height: 200,
+                plugins: 'advlist anchor autosave code codesample directionality emoticons fullscreen image insertdatetime lists media nonbreaking pagebreak preview searchreplace table visualblocks visualchars wordcount',
+                codesample_languages: [
+                    // Add more from list at https://prismjs.com/#supported-languages
+                    { text: 'C#', value: 'csharp' },
+                    { text: 'CSS', value: 'css' },
+                    { text: 'Haskell', value: 'haskell' },
+                    { text: 'HTML/XML', value: 'markup' },
+                    { text: 'JavaScript', value: 'javascript' },
+                    { text: 'Json', value: 'json' },
+                    { text: 'Powershell', value: 'powershell' },
+                    { text: 'Plain', value: 'plain' },
+                    { text: 'YAML', value: 'yml' }
+                ],
+                codesample_global_prismjs: true,
+                // menubar: "edit view format insert table",
+                toolbar: 'undo redo styles bold italic outdent indent codesample blockquote numlist bullist | visualblocks code fullscreen',
+                // selection_toolbar: 'bold italic | quicklink h2 h3 blockquote',
+                // autoresize_bottom_margin: 0,
+                // paste_data_images: true,
+                // image_advtab: true,
                 file_picker_types: 'image',
+                file_picker_callback: (callback, value, meta) => {
+
+                    const fileInput = document.createElement("input");
+                    fileInput.type = "file";
+                    fileInput.multiple = false;
+                    fileInput.accept = "image/*";
+                    fileInput.addEventListener("change", handleFileSelect, false);
+                    fileInput.click();
+                },
                 relative_urls: false,
                 convert_urls: false,
                 branding: false,
-
-                setup: function (editor) {
-                    editor.addButton('imageupload', {
-                        icon: "image",
-                        onclick: function () {
-                            var fileInput = document.createElement("input");
-                            fileInput.type = "file";
-                            fileInput.multiple = true;
-                            fileInput.accept = "image/*";
-                            fileInput.addEventListener("change", handleFileSelect, false);
-                            fileInput.click();
-                        }
-                    });
-                }
+                promotion: false
             });
         }
 
