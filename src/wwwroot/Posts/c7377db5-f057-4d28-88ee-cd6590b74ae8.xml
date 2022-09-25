@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Introduction to identity impersonation with IIS and ASP.NET</title>
+  <slug>introduction-to-identity-impersonation-with-iis-and-aspnet</slug>
+  <pubDate>2011-10-03 14:07:18</pubDate>
+  <lastModified>2022-09-25 12:12:55</lastModified>
+  <excerpt>ASP.NET applications running on IIS6 and IIS7 use the NETWORK SERVICE account by default to access resources on the computer. This post explains how to use a different account.</excerpt>
+  <content>&lt;p&gt;ASP.NET applications running on IIS6 and IIS7 use the &lt;code&gt;NETWORK SERVICE&lt;/code&gt; account by default to access resources on the computer. This post explains how to enable impersonation to have ASP.NET use a different account.&lt;/p&gt;
+&lt;h2&gt;IIS7&lt;/h2&gt;
+&lt;p&gt;When an anonymous request arrives (ie not using Windows Authentication), IIS will by default tag the request as coming from the built in account &lt;code&gt;IUSR&lt;/code&gt;. This behaviour is defined in applicationHost.config:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;anonymousAuthentication enabled="true" userName="IUSR" /&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;IIS then passes the request to ASP.NET where Forms Authentication can be used to independently authenticate the user (note that IIS can still use "anonymous" authentication, even though ASP.NET later applies Forms Authentication).&lt;/p&gt;
+&lt;p&gt;ASP.NET itself then makes requests for system resources using the &lt;code&gt;NETWORK SERVICE&lt;/code&gt; account, by default. The account used is determined by the Application Pool that the web site belongs to, where all application pools are initially configured to use &lt;code&gt;NETWORK SERVICE&lt;/code&gt; as determined in applicationHost.config:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;applicationPoolDefaults&amp;gt;
+    &amp;lt;processModel identityType="NetworkService" /&amp;gt;
+&amp;lt;/applicationPoolDefaults&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If we want ASP.NET to use a different account instead of NETWORK SERVICE, we can tell it to use &lt;em&gt;impersonation&lt;/em&gt; by adding the following to the web application's web.config:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;system.web&amp;gt;
+    &amp;lt;identity impersonate="true" /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In our scenario, this will then impersonate the account &lt;code&gt;IUSR&lt;/code&gt;, since this is the identity IIS provided for the request.&lt;/p&gt;
+&lt;p&gt;If IIS was using Windows Authentication (instead of anonymous authentication) then this would allow us to make resource requests from ASP.NET while impersonating the Windows identity of whoever was logged on. This might be necessary to give access to specific resources restricted to that user.&lt;/p&gt;
+&lt;p&gt;Alternatively, regardless of what mode of authentication IIS was using, we could provide a valid Windows identity to be used for all requests, by adding the following to web.config:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;system.web&amp;gt;
+  &amp;lt;identity impersonate="true" 
+    userName="[DOMAIN]\UserName"
+    password="[Password]" /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;IIS6&lt;/h2&gt;
+&lt;p&gt;IIS6 works in the same way as IIS7, except that the default account name used by IIS is in the format: &lt;code&gt;IUSR_[MachineName]&lt;/code&gt;&lt;/p&gt;
+&lt;h2&gt;Useful Information&lt;/h2&gt;
+&lt;h3&gt;Finding the Current Identity&lt;/h3&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;System.Security.Principal.WindowsIdentity.GetCurrent().Name&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;IIS Config File&lt;/h3&gt;
+&lt;p&gt;The Internet Information Services Manager lets you configure IIS, but the configuration is ultimately stored in the file:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;%windir%\system32\inetsrv\config\applicationHost.config&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Links&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://learn.iis.net/page.aspx/140/understanding-built-in-user-and-group-accounts-in-iis-7-and-above/" target="_blank" rel="noopener"&gt;Understanding Built-In User and Group Accounts in IIS 7&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://msdn.microsoft.com/en-us/library/134ec8tc(VS.90).aspx" target="_blank" rel="noopener"&gt;Using IIS Authentication with ASP.NET Impersonation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content>
+  <ispublished>true</ispublished>
+  <categories></categories>
+  <comments>
+    <comment isAdmin="false" id="2d60e0bb-6054-4896-a9e5-a0c2ed64732b">
+      <author>Sandeep Bhadauriya</author>
+      <email>sndeep.bhadauria@gmail.com</email>
+      <date>2013-07-11 08:0:25</date>
+      <content>Nice Post, It&amp;#39;s very use full for me,&lt;br /&gt;Thanks.</content>
+    </comment>
+    <comment isAdmin="false" id="07f7acd9-40c3-4b57-a8b7-65d05b52f318">
+      <author>Mayank</author>
+      <email>mayankmansa@gmail.com</email>
+      <date>2014-07-15 13:10:34</date>
+      <content>Nice..Short and Simple and yet to the point.</content>
+    </comment>
+  </comments>
+</post>

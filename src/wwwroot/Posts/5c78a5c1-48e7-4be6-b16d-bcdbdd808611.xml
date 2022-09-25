@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>TopShelf EnableServiceRecovery Configuration</title>
+  <slug>topshelf-enableservicerecovery-configuration</slug>
+  <pubDate>2017-09-24 08:52:34</pubDate>
+  <lastModified>2022-09-25 12:12:05</lastModified>
+  <excerpt>How to set the EnableServiceRecovery options of a console application running as a Windows Service using TopShelf.</excerpt>
+  <content>&lt;p&gt;TopShelf allows you to easily run a Console Application as a Windows Service.&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;When configuring TopShelf, there is an `EnableServiceRecovery` method to specify what happens when things go wrong.&lt;/p&gt;
+&lt;p&gt;Which settings to use are a lot easier to work out once you realise that TopShelf just uses these during installation to set the Recovery options available for any Windows Service.&lt;/p&gt;
+&lt;p&gt;So if we have a simple application (based on the &lt;a href="http://docs.topshelf-project.com/en/latest/configuration/quickstart.html" target="_blank" rel="noopener"&gt;TopShelf quickstart docs&lt;/a&gt;) with recovery options set:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;using System;
+using System.Timers;
+using Topshelf;
+
+namespace TopShelfDemoService
+{
+    public class TownCrier
+    {
+        readonly Timer _timer;
+        public TownCrier()
+        {
+            _timer = new Timer(1000) { AutoReset = true };
+            _timer.Elapsed += (sender, eventArgs) =&amp;gt; Console.WriteLine("It is {0} and all is well", DateTime.Now);
+        }
+        public void Start() { _timer.Start(); }
+        public void Stop() { _timer.Stop(); }
+    }
+
+    public class Program
+    {
+        public static void Main()
+        {
+            HostFactory.Run(x =&amp;gt;
+            {
+                x.Service&amp;lt;TownCrier&amp;gt;(s =&amp;gt;
+                {
+                    s.ConstructUsing(name =&amp;gt; new TownCrier());
+                    s.WhenStarted(tc =&amp;gt; tc.Start());
+                    s.WhenStopped(tc =&amp;gt; tc.Stop());
+                });
+                x.RunAsLocalSystem();
+
+                x.SetDescription("Sample Topshelf Host");
+                x.SetDisplayName("Stuff");
+                x.SetServiceName("Stuff");
+
+                x.EnableServiceRecovery(src =&amp;gt;
+                {
+                    src.OnCrashOnly();
+                    src.RestartService(delayInMinutes: 0);
+                    src.RestartService(delayInMinutes: 1);
+                    src.SetResetPeriod(days: 1);
+                });
+            });
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And we then install this as a service from a Command Prompt (as administrator):&lt;/p&gt;
+&lt;pre class="language-powershell"&gt;&lt;code&gt;TopShelfDemoService.exe install
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;From the Services management page we will then see the correspondence between the TopShelf `EnableServiceRecovery` configuration and the Services Recovery Properties:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/b31841b4-9576-4163-8dec-32284f84067f.png"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="image" src="http://appetere.com/posts/files/ce591bda-b2d4-4a54-97ed-90c3adf7bcf6.png" alt="image" width="643" height="536" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;The comments in the code below show how the two are related:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;x.EnableServiceRecovery(src =&amp;gt;
+{
+  // Has no corresponding setting in the Recovery dialogue.
+  // OnCrashOnly means the service will not restart if the application returns
+  // a non-zero exit code.  By convention, an exit code of zero means &amp;lsquo;success&amp;rsquo;.
+  src.OnCrashOnly();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;  // Corresponds to &amp;lsquo;First failure: Restart the Service&amp;rsquo;
+  // Note: 0 minutes delay means restart immediately
+  src.RestartService(delayInMinutes: 0);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;  // Corresponds to &amp;lsquo;Second failure: Restart the Service&amp;rsquo;
+  // Note: TopShelf will configure a 1 minute delay before this restart, but the
+  // Recovery dialogue only shows the first restart delay (0 minutes)
+  src.RestartService(delayInMinutes: 1);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;  // Corresponds to &amp;lsquo;Reset fail count after: 1 days&amp;rsquo;
+  src.SetResetPeriod(days: 1);
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In other words, when the service crashes, it will try and restart immediately.&amp;nbsp; If it crashes again, it will wait one minute then restart.&amp;nbsp; If it crashes again, it will do nothing.&lt;/p&gt;
+&lt;p&gt;If we want the service to keep restarting, no matter how many times it crashes, we just have to set the `Subsequent failures` setting:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;x.EnableServiceRecovery(src =&amp;gt;
+{
+  src.OnCrashOnly();
+  src.RestartService(delayInMinutes: 0);
+  src.RestartService(delayInMinutes: 1);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;  // Corresponds to &amp;lsquo;Subsequent failures: Restart the Service&amp;rsquo;
+  src.RestartService(delayInMinutes: 5);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;  src.SetResetPeriod(days: 1);
+});
+&lt;/code&gt;&lt;/pre&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>c#</category>
+    <category>topshelf</category>
+  </categories>
+  <comments></comments>
+</post>

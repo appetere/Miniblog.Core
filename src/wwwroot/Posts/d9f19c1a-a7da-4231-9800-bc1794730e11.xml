@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Development Environment Setup</title>
+  <slug>development-environment-setup</slug>
+  <pubDate>2016-04-04 15:33:52</pubDate>
+  <lastModified>2022-09-25 12:12:21</lastModified>
+  <excerpt>This post is a checklist I can use myself when setting up a new machine for full-stack development.</excerpt>
+  <content>&lt;p&gt;This post is a reminder to myself of useful tools, extensions and packages for development work.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;C#&lt;/h2&gt;
+&lt;p&gt;Use latest language features:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a title="https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md" href="https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md"&gt;https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2&gt;Visual Studio 2017&lt;/h2&gt;
+&lt;h2&gt;&amp;nbsp;&lt;/h2&gt;
+&lt;p&gt;Ensure using latest version of Visual Studio:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Check &lt;code&gt;Tools =&amp;gt; Extensions and Updates =&amp;gt; Updates&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Free extensions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Refactoring Essentials (&lt;a title="http://vsrefactoringessentials.com/" href="http://vsrefactoringessentials.com/"&gt;http://vsrefactoringessentials.com/&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Web Essentials (&lt;a href="http://vswebessentials.com/" target="_blank" rel="nofollow noopener"&gt;http://vswebessentials.com/&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Trailing Whitespace Visualizer (Mads Kristensen)&lt;/li&gt;
+&lt;li&gt;Visual F# Power Tools (&lt;a href="http://fsprojects.github.io/VisualFSharpPowerTools/"&gt;http://fsprojects.github.io/VisualFSharpPowerTools/&lt;/a&gt;)
+&lt;ul&gt;
+&lt;li&gt;Possibly still better to use nightly build to get bug-fixes (&lt;a title="https://blogs.msdn.microsoft.com/dotnet/2017/03/14/announcing-nightly-releases-for-the-visual-f-tools/" href="https://blogs.msdn.microsoft.com/dotnet/2017/03/14/announcing-nightly-releases-for-the-visual-f-tools/"&gt;https://blogs.msdn.microsoft.com/dotnet/2017/03/14/announcing-nightly-releases-for-the-visual-f-tools/&lt;/a&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Productivity Power Tools (&lt;a title="https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProductivityPowerPack2017" href="https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProductivityPowerPack2017"&gt;https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProductivityPowerPack2017&lt;/a&gt;)
+&lt;ul&gt;
+&lt;li&gt;After installing, move document tabs to the left side:&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Options =&amp;gt; Productivity Power Tools = Custom Document Well =&amp;gt; General =&amp;gt; Place tabs on the Left&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Paid extensions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Resharper.&amp;nbsp; Doesn&amp;rsquo;t really add much to native functionality + free extensions any more.&amp;nbsp; I don&amp;rsquo;t use it.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Useful project-level NuGet Packages:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Microsoft.Net.Compilers (&lt;a title="https://www.nuget.org/packages/Microsoft.Net.Compilers/" href="https://www.nuget.org/packages/Microsoft.Net.Compilers/"&gt;https://www.nuget.org/packages/Microsoft.Net.Compilers/&lt;/a&gt;)&lt;/li&gt;
+&lt;ul&gt;
+&lt;li&gt;Build using specific version of C# compiler in package, rather than system-installed version&lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt;Swashbuckle / Swagger (&lt;a href="https://github.com/domaindrivendev/Swashbuckle" target="_blank" rel="nofollow noopener"&gt;https://github.com/domaindrivendev/Swashbuckle&lt;/a&gt;)&lt;/li&gt;
+&lt;ul&gt;
+&lt;li&gt;Automatic documentation and explorer for WebAPI&lt;/li&gt;
+&lt;/ul&gt;
+&lt;li&gt;Refit (&lt;a title="https://paulcbetts.github.io/refit/" href="https://paulcbetts.github.io/refit/"&gt;https://paulcbetts.github.io/refit/&lt;/a&gt;)
+&lt;ul&gt;
+&lt;li&gt;Automatic type-safe REST library&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Visual Studio manual configuration:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Tabs v spaces
+&lt;ul&gt;
+&lt;li&gt;Use &lt;code&gt;.editorconfig&lt;/code&gt; file to include preference in source code (see &lt;a title="https://www.hanselman.com/blog/TabsVsSpacesAPeacefulResolutionWithEditorConfigInVisualStudioPlusNETExtensions.aspx" href="https://www.hanselman.com/blog/TabsVsSpacesAPeacefulResolutionWithEditorConfigInVisualStudioPlusNETExtensions.aspx"&gt;https://www.hanselman.com/blog/TabsVsSpacesAPeacefulResolutionWithEditorConfigInVisualStudioPlusNETExtensions.aspx&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Set in Visual Studio for local preference: &lt;code&gt;Options =&amp;gt; Text Editor =&amp;gt; C# =&amp;gt; Tabs =&amp;gt; Insert spaces&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Add private/incognito browsers (see &lt;a title="http://www.hanselman.com/blog/VisualStudioWebDevelopmentTipAddChromeIncognitoModeAsABrowser.aspx" href="http://www.hanselman.com/blog/VisualStudioWebDevelopmentTipAddChromeIncognitoModeAsABrowser.aspx"&gt;http://www.hanselman.com/blog/VisualStudioWebDevelopmentTipAddChromeIncognitoModeAsABrowser.aspx&lt;/a&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Useful Visual Studio windows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;C# Interactive Window &amp;ndash; For REPL coding (&lt;a href="https://github.com/dotnet/roslyn/wiki/Interactive-Window" target="_blank" rel="nofollow noopener"&gt;https://github.com/dotnet/roslyn/wiki/Interactive-Window&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Task Runner Explorer &amp;ndash; To edit and run tasks within gruntfile.js or gulpfile.js. Can also get to window by right-click on file.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;Visual Studio Code&lt;/h2&gt;
+&lt;p&gt;Good for editing JavaScript and TypeScript.&lt;/p&gt;
+&lt;p&gt;Command-line http-server:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;https://www.npmjs.com/package/http-server&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2&gt;Git&lt;/h2&gt;
+&lt;p&gt;GitHub for Windows&lt;/p&gt;
+&lt;p&gt;Git Extensions&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;https://gitextensions.github.io/&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Git for Winwdows &lt;a title="https://git-for-windows.github.io/" href="https://git-for-windows.github.io/" rel="nofollow"&gt;https://git-for-windows.github.io/&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Includes Git BASH emulator and File Explorer context menu&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Perforce Merge Tool &lt;a href="http://www.perforce.com/product/components/perforce-visual-merge-and-diff-tools" rel="nofollow"&gt;http://www.perforce.com/product/components/perforce-visual-merge-and-diff-tools&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;See notes in Training =&amp;gt; Subjects =&amp;gt; Git&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;Useful links:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://www.johnpapa.net/get-up-and-running-with-node-and-visual-studio/" target="_blank" rel="nofollow noopener"&gt;http://www.johnpapa.net/get-up-and-running-with-node-and-visual-studio/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Nuget&lt;/h2&gt;
+&lt;p&gt;TODO&lt;/p&gt;
+&lt;h2&gt;Paket&lt;/h2&gt;
+&lt;p&gt;TODO&lt;/p&gt;
+&lt;h2&gt;Chocolatey&lt;/h2&gt;
+&lt;p&gt;Chocolatey NuGet is a Machine Package Manager, somewhat like apt-get, but built with Windows in mind.&lt;/p&gt;
+&lt;p&gt;See &lt;a href="https://chocolatey.org/" target="_blank" rel="nofollow noopener"&gt;https://chocolatey.org/&lt;/a&gt; for installation instructions using PowerShell.&lt;/p&gt;
+&lt;h2&gt;Node.js &amp;amp; npm&lt;/h2&gt;
+&lt;p&gt;Node.js: a JavaScript-based cross-platform runtime used for server-side web-applications and (more important here) local task automation.&lt;/p&gt;
+&lt;p&gt;npm (node package manager): Installs, publishes and manages node programs.&lt;/p&gt;
+&lt;p&gt;Install using Chocolatey. Note that installing node also installs npm:&lt;/p&gt;
+&lt;pre&gt;choco install nodejs&lt;/pre&gt;
+&lt;h2&gt;Webpack&lt;/h2&gt;
+&lt;p&gt;Package manager selected by Microsoft for their .NET Core UI templates:&lt;/p&gt;
+&lt;p&gt;http://webpack.github.io/docs/installation.html&lt;/p&gt;
+&lt;h2&gt;Bower&lt;/h2&gt;
+&lt;p&gt;Another package manager, but this time for components used by a (front-end) client (eg JavaScript, HTML, CSS, images, fonts).&lt;/p&gt;
+&lt;p&gt;Install using npm:&lt;/p&gt;
+&lt;pre&gt;npm install -g bower&lt;/pre&gt;
+&lt;p&gt;On Windows 10 this installs the packages to &lt;code&gt;c:\Users\[User]\AppData\Roaming\npm&lt;/code&gt;&lt;/p&gt;
+&lt;h2&gt;Gulp.js&lt;/h2&gt;
+&lt;p&gt;A more recent (fashionable?) alternative to Grunt.js which automates repetitive build-tasks (eg bundling, minification, Sass compilation).&lt;/p&gt;
+&lt;p&gt;Install using npm:&lt;/p&gt;
+&lt;pre&gt;npm install &amp;ndash;g gulp&lt;/pre&gt;
+&lt;h2&gt;Grunt.js&lt;/h2&gt;
+&lt;p&gt;Automates repetitive build-tasks (eg bundling, minification, Sass compilation). Also see Gulp.js.&lt;/p&gt;
+&lt;p&gt;Install using npm:&lt;/p&gt;
+&lt;pre&gt;npm install &amp;ndash;g grunt&lt;/pre&gt;
+&lt;h1&gt;&amp;nbsp;&lt;/h1&gt;
+&lt;hr&gt;
+&lt;h2&gt;TeamCity&lt;/h2&gt;
+&lt;p&gt;Configuring to build C# 6 (see &lt;a href="http://stackoverflow.com/questions/31593863/what-is-needed-to-run-roslyn-on-teamcity" target="_blank" rel="nofollow noopener"&gt;run Roslyn on TeamCity&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;Using Node in build (see &lt;a href="http://daanleduc.nl/2014/11/27/run-nodegruntgulp-build-step-on-teamcity/" target="_blank" rel="nofollow noopener"&gt;http://daanleduc.nl/2014/11/27/run-nodegruntgulp-build-step-on-teamcity/&lt;/a&gt;)&lt;/p&gt;</content>
+  <ispublished>false</ispublished>
+  <categories></categories>
+  <comments></comments>
+</post>

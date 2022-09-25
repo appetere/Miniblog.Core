@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Working with ViewState</title>
+  <slug>working-with-viewstate</slug>
+  <pubDate>2009-07-30 17:06:00</pubDate>
+  <lastModified>2022-09-25 12:13:25</lastModified>
+  <excerpt>Introducing the main variables that affect how ViewState is stored in an ASP.NET WebForms page.</excerpt>
+  <content>&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;The purpose of this post is to introduce the main variables that affect how &lt;code&gt;ViewState&lt;/code&gt; is stored in a page.&amp;nbsp; I wrote this article as a summary of my findings after spending hours trying to diagnose various recurring exceptions in my websites' event logs which turned out to be related to ViewState security.&lt;/p&gt;
+&lt;p&gt;First we'll look at ASP.NET's default settings and what they mean for your ASP.NET page.&lt;/p&gt;
+&lt;p&gt;Then we'll have a quick look at where encryption keys come from, when they are required.&lt;/p&gt;
+&lt;p&gt;Finally, we'll highlight some of the things that can go wrong, and how they could be diagnosed given the information in this post.&lt;/p&gt;
+&lt;h2&gt;Assumed Knowledge&lt;/h2&gt;
+&lt;p&gt;This post assumes you already understand the role of ViewState in the Page Lifecycle.&amp;nbsp; For a refresher, take a look at the MSDN article:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://msdn.microsoft.com/en-us/library/ms972976.aspx#viewstate_topic2" target="_blank" rel="noopener"&gt;http://msdn.microsoft.com/en-us/library/ms972976.aspx#viewstate_topic2&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;ASP.NET Default Settings&lt;/h2&gt;
+&lt;h3&gt;web.config&lt;/h3&gt;
+&lt;p&gt;Let's start with the relevant defaults used by ASP.NET if you don't change anything yourself.&amp;nbsp; This are mostly determined by your web.config file (with one exception, covered in the text).&lt;/p&gt;
+&lt;p&gt;I've copied the following extract from web.config.comments (which you should be able to find tucked away in your Windows directory, if you have .NET installed) that shows the relevant defaults &amp;amp; possible values:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;pages
+  enableViewState = "true" [true|false]
+  enableViewStateMac = "true" [true|false]
+  viewStateEncryptionMode = "Auto" [Auto | Always | Never]
+&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;enableViewState&lt;/h3&gt;
+&lt;p&gt;ViewState is always used, by default.&amp;nbsp; So where is it stored?&amp;nbsp; A field will be added to your page, typically in a &amp;lt;div&amp;gt; element just inside the &amp;lt;form&amp;gt; element, looking like this:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;input id="__VIEWSTATE" type="hidden" 
+  value="/wEPDwUJODM...==" 
+  name="__VIEWSTATE"/&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I've truncated the value which may be big or small depending on how much data is stored.&lt;/p&gt;
+&lt;h3&gt;viewStateEncryptionMode&lt;/h3&gt;
+&lt;p&gt;The ViewState value can be encrypted to stop users (maliciously or otherwise) changing it, before a PostBack.&lt;/p&gt;
+&lt;p&gt;The default setting of viewStateEncryptionMode is "Auto".&amp;nbsp; This means that ASP.NET will &lt;em&gt;only&lt;/em&gt; encrypt the ViewState if a control on the page requests it.&amp;nbsp; For example, the GridView, DetailsView and FormView will request encryption when the DataKeyNames property is set.&lt;/p&gt;
+&lt;p&gt;The quick way to discover if encryption is being used or not is to look at the bottom of your form, typically in a &amp;lt;div&amp;gt; element.&amp;nbsp; If encryption is in use, ASP.NET adds a field with no value, to indicate this:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;input id="__VIEWSTATEENCRYPTED" 
+  type="hidden" 
+  name="__VIEWSTATEENCRYPTED" /&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The encrypted ViewState is still stored in the same field as the unencrypted ViewState.&lt;/p&gt;
+&lt;p&gt;You can, of course, force encryption on or off using the "Always" or "Never" values in web.config.&lt;/p&gt;
+&lt;h3&gt;enableViewStateMac&lt;/h3&gt;
+&lt;p&gt;The Message Authentication Code (MAC) is the hash of the ViewState value (encrypted or unencrypted).&amp;nbsp; The MAC code is always the same length (as is the nature of a hashing algorithm) and is added to the end of the ViewState's value.&lt;/p&gt;
+&lt;p&gt;Its purpose is to allow ASP.NET to check that the hash it sent out with the page matches the hash of the ViewState submitted during a PostBack.&amp;nbsp; If it is different, the ViewState may have been tampered with and an exception will be thrown.&lt;/p&gt;
+&lt;p&gt;ASP.NET also allows you to increase the security of the MAC, by adding in a value that is unique to the current user, using a Page property:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;Page.ViewStateUserKey&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you specify a value (for example, the Session ID, or a user's log-in name) then this is incorporated into the MAC, but &lt;em&gt;only&lt;/em&gt; if &lt;code&gt;enableViewStateMac = "true"&lt;/code&gt; in web.config (which is the default anyway).&lt;/p&gt;
+&lt;p&gt;For anyone using &lt;em&gt;Kentico CMS&lt;/em&gt; (V4 onwards), the ViewStateUserKey is populated by default with the value:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;HttpContext.Current.Request.UserHostAddress + "_" + 
+  HttpContext.Current.Session.SessionID&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can turn this off in your web.config file using:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;app Settings
+  &amp;lt;add key="CMSUseViewStateUserKey" value="false"/&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Encryption Keys&lt;/h2&gt;
+&lt;h3&gt;web.config&lt;/h3&gt;
+&lt;p&gt;If your ViewState is to be encrypted, then you require an encryption algorithm &amp;amp; key.&lt;/p&gt;
+&lt;p&gt;Similarly, if you want a MAC to be created as a hash of your ViewState you need a hashing algorithm &amp;amp; key.&lt;/p&gt;
+&lt;p&gt;These are again specified within web.config, with the options as follows:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;machineKey
+  validationKey="AutoGenerate,IsolateApps" [String]
+  decryptionKey="AutoGenerate,IsolateApps" [String]
+  validation="SHA1" [SHA1 | MD5 | 3DES | AES]
+  decryption="Auto" [Auto | DES | 3DES | AES]
+/&amp;gt;
+
+(decryption actually uses AES when "Auto" is selected)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Here, the validationKey is used for hashing &amp;amp; the decryptionKey for encryption/decryption.&lt;/p&gt;
+&lt;p&gt;The default is for ASP.NET to make the decisions on algorithms for you, and to create unique, occasionally changing keys for them.&amp;nbsp; These will be fine for many situations, but you will need to specify your own values for the situations outlined in the next section.&lt;/p&gt;
+&lt;h3&gt;Web Farms &amp;amp; Shared Hosts&lt;/h3&gt;
+&lt;p&gt;When ASP.NET generates the keys for you, the keys will be derived from the ID of the application.&amp;nbsp; If there is any chance of these keys changing between the time a user requests a page and then sending a PostBack of the page, you must manually specify your own, fixed, keys.&lt;/p&gt;
+&lt;p&gt;In a &lt;strong&gt;web farm&lt;/strong&gt;, each separate server will generate its own keys, so you &lt;em&gt;must &lt;/em&gt;create your own &amp;amp; manually add them to web.config on each machine.&amp;nbsp; Otherwise if a user happened to PostBack to a different server, an exception would be generated.&lt;/p&gt;
+&lt;p&gt;In &lt;strong&gt;shared hosting&lt;/strong&gt;, you may be lucky &amp;amp; be able to use the defaults.&amp;nbsp; However, the application pool may be restarted at any time (whether planned or due to another user's site crashing) &amp;amp; new keys created while a user is halfway through using a page, again causing an exception.&lt;/p&gt;
+&lt;p&gt;So you need to add your own keys if either of these situations apply to you.&amp;nbsp; There are many online utilities for creating these for you.&amp;nbsp; One I have found for you (but never used myself) is:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://www.aspnetresources.com/tools/keycreator.aspx"&gt;www.aspnetresources.com/tools/keycreator.aspx&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The output which you need to add within the system.web section of web.config will look something like this:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;machineKey
+  validationKey="70723A457658C5......2E77"
+  decryptionKey="8B2070C36F......76E31"
+  validation="SHA1" /&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Diagnosing Problems&lt;/h2&gt;
+&lt;p&gt;The exceptions I came across seemed to divide into a number of categories:&lt;/p&gt;
+&lt;h3&gt;Invalid ViewState&lt;/h3&gt;
+&lt;p&gt;This site regularly gets the exception message "&lt;strong&gt;Invalid viewstate&lt;/strong&gt;" in the logs, and is an example of validation working correctly.&amp;nbsp; It seems to happen when an automated web-spider is probing the site and sees that the page has a form with a post-back location specified:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;form method="post" action="/default.aspx" id="form1"&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The spider then constructs a POST request to the URL specified (presumably to see if this reveals anything that can be used to compromise the site).&amp;nbsp; But because this POST request does not include valid ViewState, the error is thrown.&lt;/p&gt;
+&lt;p&gt;If you are seeing this exception regularly, then it is worth finding some of the offending requests in the website logs to see if this diagnosis is relevant to you.&lt;/p&gt;
+&lt;h3&gt;Encryption Keys Changed Before PostBack&lt;/h3&gt;
+&lt;p&gt;A typical exception message for this is, "&lt;strong&gt;Validation of viewstate MAC failed&lt;/strong&gt;".&amp;nbsp; It is saying that when the server recalculated the Message Authentication Code for the ViewState it received in a PostBack, it didn't match the value it sent out.&lt;/p&gt;
+&lt;p&gt;So the most likely causes are either someone has been tampering with the ViewState, or the encryption keys have changed in the meantime.&lt;/p&gt;
+&lt;p&gt;I do recommend having a close look at your server logs, if you can find the particular entries for the page that caused the problem (by cross-referencing the time &amp;amp; IP address from your exception details). It won't tell you if the keys changed, but you may be able to see whether the pattern of pages requested looks like a genuine user or someone probing your site.&lt;/p&gt;
+&lt;p&gt;But in general, the solution to this type of problem is to add your own encryption keys to the &lt;strong&gt;&amp;lt;machineKey&amp;gt;&lt;/strong&gt; element in web.config, as outlined above, so removing the possibility of the keys changing unexpectedly.&lt;/p&gt;
+&lt;h3&gt;Wrong ViewState Used Due To Caching&lt;/h3&gt;
+&lt;p&gt;If a particular page uses full-page caching to improve performance, then you must be sure the ViewState is the same for all users who will use that cached version.&lt;/p&gt;
+&lt;p&gt;A typical "gotcha" would be to carefully set the property (described above):&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;Page.ViewStatUserKey
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;to a value unique to each user, to improve security.&amp;nbsp; But if full-page caching is in use, then all the users would receive identical copies of the page to the first person who requested the page.&amp;nbsp; The first person is fine, but everyone else will generate an exception when they PostBack their copy of the page, which has the MAC for the first person in the ViewState, rather than their own.&lt;/p&gt;
+&lt;h3&gt;Partial Page Submitted During PostBack&lt;/h3&gt;
+&lt;p&gt;This sort of exception could result in a message like, "&lt;strong&gt;Unable to validate data&lt;/strong&gt;".&lt;/p&gt;
+&lt;p&gt;The problem can happen when the user has requested a PostBack before the original page has finished loading, so that when the application inspects what it has received, it cannot make sense of the ViewState.&lt;/p&gt;
+&lt;p&gt;For example, as outlined in the &lt;strong&gt;viewStateEncryptionMode &lt;/strong&gt;section above, the flag to indicate encryption is in use is rendered right at the end of the form:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;input id="__VIEWSTATEENCRYPTED" 
+  type="hidden" 
+  name="__VIEWSTATEENCRYPTED" /&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So if the page is taking a long time to download, but has started to render in the browser, the user may be able to click on a button (say) to create a PostBack before this field has been added to the page.&lt;/p&gt;
+&lt;p&gt;Then when the application inspects the PostBack (from only the partial page) it will assume it is &lt;em&gt;not&lt;/em&gt; encrypted, since there is nothing to say that it is, and an exception will be raised.&lt;/p&gt;
+&lt;p&gt;Note that it seems this issue may have been addressed in Service Pack 1 for ASP.NET 3.5, but I've not yet tested this for myself.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories></categories>
+  <comments>
+    <comment isAdmin="false" id="2f3f8596-0db5-4575-8d91-597b18b14516">
+      <author>Ezeki</author>
+      <email>ezeki88@gmail.com</email>
+      <date>2009-08-25 11:2:10</date>
+      <content>thanks for this topic, it was very helpful for me</content>
+    </comment>
+    <comment isAdmin="false" id="4763a337-9905-4fcb-8da8-8993c1de9357">
+      <author>Jeff Prince</author>
+      <email>jeffprince777@btinternet.com</email>
+      <date>2010-04-03 15:41:21</date>
+      <content>Steve,&lt;br /&gt;Thanks a million for clarifying this ViewStateMAC issue. It has been a thorn in my side, and I now realise that I have to fix the decryptionkey as well as the validationkey to solve my problems.&lt;br /&gt;Jeff Prince</content>
+    </comment>
+    <comment isAdmin="false" id="6cd46361-5a9e-472e-b75f-49bf8e87a7f6">
+      <author>Rhino Car Hire</author>
+      <email>scott@rhinocarhire.com</email>
+      <date>2010-10-09 19:39:49</date>
+      <content>Hi Steve,&lt;br /&gt;&lt;br /&gt;I found this blog from the kentico forum where you posted a question on the &amp;quot;Unable to validate data&amp;quot;&lt;br /&gt;&lt;br /&gt;I have been getting this issue for a while now but it only seems to happen on this page http://www.rhinocarhire.com/Customer-Services.aspx which is odd.&lt;br /&gt;&lt;br /&gt;Also, I do not have any of the below in my webconfig, do you think I should add them. I do have the machinekey decryptionkey and validationkey set.&lt;br /&gt;&lt;br /&gt;enableViewState = &amp;quot;true&amp;quot; [true|false]&lt;br /&gt;enableViewStateMac = &amp;quot;true&amp;quot; [true|false]&lt;br /&gt;viewStateEncryptionMode = &amp;quot;Auto&amp;quot; [Auto | Always | Never]&lt;br /&gt;&lt;br /&gt;I also seem to get this error but only from googebot but wonder if its related:&lt;br /&gt;&lt;br /&gt;&amp;quot;Padding is invalid and cannot be removed&amp;quot;&lt;br /&gt;&lt;br /&gt;Thanks&lt;br /&gt;&lt;br /&gt;Scott</content>
+    </comment>
+    <comment isAdmin="true" id="75e4a9b6-b889-4c9d-a20b-897a9865b499">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2010-10-22 12:49:45</date>
+      <content>Hi Scott&lt;br /&gt;&lt;br /&gt;You only need to add the web.config settings you highlighted if you want to change the defaults (which since the defaults are true, means you would be turning things off).&lt;br /&gt;&lt;br /&gt;My Kentico sites do still generate the same exceptions you are getting, from time to time, despite having the configuration as I&amp;#39;ve described.&lt;br /&gt;&lt;br /&gt;The next step in diagnosis is to find the exact requests in your web site logs that caused each exception.&lt;br /&gt;&lt;br /&gt;You may find that the &amp;quot;Unable to validate data&amp;quot; error is only caused by search engines, perhaps doing a postback from a cached copy of a page. Since the ViewStateMac includes some session identifier, this would most likely be wrong for the current session and hence you get an exception.&lt;br /&gt;&lt;br /&gt;It&amp;#39;s a bit tedious, but you need to go through the logs this way to work out whether real users are causing the problem, or if it is just a side-effect from search-engine activity, or even hackers probing the site.&lt;br /&gt;&lt;br /&gt;Hope this helps.&lt;br /&gt;&lt;br /&gt;Steve</content>
+    </comment>
+    <comment isAdmin="false" id="5c1b4a1e-410a-4360-879e-77e0d709d4ee">
+      <author>Victor Juri</author>
+      <email>vjuri@emktg.net</email>
+      <date>2011-09-13 16:4:38</date>
+      <content>I hate viewstate for this reason and when I can avoid it I do. I try to use MVC for this reason. Nice and restful.&lt;br /&gt;&lt;br /&gt;I have to say this article was very helpful and helped me resolve my problem. I specified a machine key and the default kentico key where conflicting causing the viewstate validation issue. Once I added &amp;lt;add key=&amp;quot;CMSUseViewStateUserKey&amp;quot; value=&amp;quot;false&amp;quot;/&amp;gt; view state was only encoded with my machine key. Problem solved. Hope it helps someone else.</content>
+    </comment>
+    <comment isAdmin="true" id="0e4d7036-15dd-4a3f-8fa8-bdb3d981aea7">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2011-11-10 10:21:09</date>
+      <content>Hi Victor&lt;br /&gt;&lt;br /&gt;Yes I agree ViewState is a pain. For new applications we always look at Microsoft&amp;#39;s MVC framework first, too.&lt;br /&gt;&lt;br /&gt;In most instances I&amp;#39;d recommend that you keep CMSUseViewStateUserKey = true. Don&amp;#39;t forget that it is normal to expect some exceptions to be thrown related to ViewState where there were genuine &amp;quot;attacks&amp;quot; that the site has defended you against.</content>
+    </comment>
+  </comments>
+</post>

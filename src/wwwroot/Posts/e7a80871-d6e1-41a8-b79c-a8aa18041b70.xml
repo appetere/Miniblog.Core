@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Selecting a Content Management System (CMS) for Appetere</title>
+  <slug>selecting-a-content-management-system-(cms)</slug>
+  <pubDate>2009-02-26 16:46:00</pubDate>
+  <lastModified>2022-09-25 12:13:42</lastModified>
+  <excerpt>Describes the criteria used when selecting a Content Management System (CMS) for Appetere, the companies considered &amp; the eventual winner.</excerpt>
+  <content>&lt;p&gt;When I came to decide how Appetere should deliver Content Management Systems, there were a number of (non-exclusive) options.&lt;/p&gt;
+&lt;p&gt;The highest level of control would come through building our own CMS from scratch.&amp;nbsp; But equally, this would be the most time-consuming option.&lt;/p&gt;
+&lt;p&gt;The other option was to use a CMS that already exists.&amp;nbsp; This should speed up the implementation time, but introduces the concern that we would be stuck with someone else's way of doing things.&lt;br&gt;&lt;br&gt;So I set down a wishlist to start the search:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Opensource code.&amp;nbsp; If ever we want to understand or modify the way the code works, this is a big benefit.&amp;nbsp; Similarly, if the vendor stopped trading, we would not be left high &amp;amp; dry.&lt;/li&gt;
+&lt;li&gt;Uses ASP.NET architecture, with any exposed code in C#.&amp;nbsp; This is what I specialise in, so I'll be able to get more out of a system that is built this way.&lt;/li&gt;
+&lt;li&gt;Good documentation &amp;amp; technical support.&lt;/li&gt;
+&lt;li&gt;Websites using the system perform well.&lt;/li&gt;
+&lt;li&gt;Modules for commonly used functionality are included or can be easily integrated.&lt;/li&gt;
+&lt;li&gt;Reasonable cost for our target customers&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Did I find everything in my wishlist in one package?&amp;nbsp; In short no, but three packages out of those evaluated (see the full list at the end) made it onto the short-list:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Kentico CMS (the eventual winner)&lt;/li&gt;
+&lt;li&gt;Umbraco&lt;/li&gt;
+&lt;li&gt;DotNetNuke&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;&lt;a href="http://www.kentico.com" target="_blank" rel="noopener"&gt;Kentico CMS&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;I'd slightly overlooked Kentico to begin with as it isn't open-source (although with a suitable licence the code is available), but as I evaluated it against my criteria it quickly emerged as the best choice for Appetere.&lt;/p&gt;
+&lt;p&gt;It is built using ASP.NET with code written in C# and is elegantly structured so that it is easy to configure &amp;amp; add custom functionality.&amp;nbsp; As a bonus, it also offers a second, proprietary way of building pages that doesn't require ASP.NET knowledge, so developers with different skill levels can work side by side on the project.&lt;/p&gt;
+&lt;p&gt;A quick check of their &lt;a href="http://www.kentico.com/Showcase.aspx" target="_blank" rel="noopener"&gt;showcase&lt;/a&gt; convinced me that sites built using the system can perform well.&lt;/p&gt;
+&lt;p&gt;Next I started building some sites myself, which ticked the box on having many useful modules that speed up the implementation of common requirements like news, blogs &amp;amp; forums.&lt;/p&gt;
+&lt;p&gt;It wasn't all plain sailing, so I did have cause to check out their technical support &amp;amp; forums.&amp;nbsp; Again, a pleasant surprise in that all emails to their support people were replied to within a matter of hours, and posts in the forums (which Kentico staff contribute to) not taking much longer for a reply.&lt;/p&gt;
+&lt;p&gt;Kentico is a Czech company, although everything is presented in English, and they have a US presence.&amp;nbsp; The Czech staff speak/write pretty good English, so this doesn't seem to be a problem.&lt;/p&gt;
+&lt;p&gt;Finally, you can use the free edition of the software to get started, but in most moderately complicated websites you do need to pay for a suitable licence.&amp;nbsp; Oddly, they price in US$, which (at the time of writing) is not great for UK buyers because of the exchange rate.&lt;/p&gt;
+&lt;p&gt;So overall I have been impressed by this product &amp;amp; company.&amp;nbsp; Going forward, Appetere will be applying to become a Kentico Solution Partner and recommending Kentico to our customers for their CMS projects.&lt;/p&gt;
+&lt;h2&gt;&lt;a href="http://www.umbraco.org" target="_blank" rel="noopener"&gt;Umbraco&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;A Danish company this, everything on their site is in English.&amp;nbsp; Code is opensource, which is free for certain applications, but licenced &amp;amp; paid for, for others.&amp;nbsp; ASP.NET again, code this time is C#.&amp;nbsp; They heavily promote that there is a thriving community of developers, ready to help with any problems.&lt;/p&gt;
+&lt;p&gt;An initial exploration of the system convinced me it is technically elegant, making the most of ASP.NET &amp;amp; AJAX.&amp;nbsp; One immediate gap, is that there are not many ready-to-use functional modules - if you want a blog or forum, for example, you are expected to code this yourself (in fact I was mildly taken aback that the Umbraco website appeared to use someone elses technology for their own forums). But I liked the overall system and was prepared to go with this.&lt;/p&gt;
+&lt;p&gt;The show-stopper came when I looked into using Umbraco on a shared-host (which is what Appetere uses, and many of our potential customers will).&amp;nbsp; You can't.&amp;nbsp; Simple as that.&amp;nbsp; The software has to run in a Full Trust environment, and the best you can expect from a shared host is Medium Trust.&amp;nbsp; So it was removed from the shortlist, but I retain a soft-spot for the software and may re-evaluate it in the future.&lt;/p&gt;
+&lt;h2&gt;&lt;a href="http://www.dotnetnuke.com" target="_blank" rel="noopener"&gt;DotNetNuke&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;This was an interesting contender.&amp;nbsp; It is a completely free, community built, opensource package.&amp;nbsp; It is based on ASP.NET, but the code is all written in VB.NET, rather than my preferred C#.&amp;nbsp; There is loads of information &amp;amp; community assistance available on line, but no formal technical support.&amp;nbsp; Functionally, there are many modules available from a variety of sources.&lt;/p&gt;
+&lt;p&gt;All looked good .. until I tried setting up a simple site. It was slow! Really slow. To give it the benefit of the doubt, I checked some public sites using DotNetNuke.&amp;nbsp; Fifteen to twenty second for the first page loads were pretty common. So it was removed from the shortlist.&lt;/p&gt;
+&lt;h2&gt;Others&lt;/h2&gt;
+&lt;p&gt;These CMS's were all included in the search as they use ASP.NET, but when evaluated against Appetere's other criteria were rejected for various reasons:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;SiteFinity&lt;/li&gt;
+&lt;li&gt;mojoPortal&lt;/li&gt;
+&lt;li&gt;Cuyahoga&lt;/li&gt;
+&lt;li&gt;N2_CMS&lt;/li&gt;
+&lt;li&gt;nkCMS&lt;/li&gt;
+&lt;li&gt;JMDCMS&lt;/li&gt;
+&lt;li&gt;vwd_CMS&lt;/li&gt;
+&lt;li&gt;Go.kyro&lt;/li&gt;
+&lt;li&gt;Rainbow&lt;/li&gt;
+&lt;li&gt;Sprocket&lt;/li&gt;
+&lt;li&gt;Alterfiction&lt;/li&gt;
+&lt;li&gt;orangelogix&lt;/li&gt;
+&lt;/ul&gt;</content>
+  <ispublished>true</ispublished>
+  <categories></categories>
+  <comments>
+    <comment isAdmin="false" id="501305a0-6914-4b80-8e0c-a1b9957254cc">
+      <author>Les Warren</author>
+      <email>leswarren@leswarren.com</email>
+      <date>2009-06-15 16:38:52</date>
+      <content>I would be curious to know what disqualified Sitefinity for you. I had some experiences with it (see my blog- ASP CMS on a Budget) and wanted to know what kind of experiences judgements others may have had. Cheers,&lt;br /&gt;Les</content>
+    </comment>
+    <comment isAdmin="true" id="53a427ba-74e2-4fb4-8730-1382217ca859">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2009-06-15 17:5:14</date>
+      <content>I did perceive Sitefinity &amp; Kentico as being quite similar. I don't recall there being any particular show-stopper that I'd come across - but as I was happy with Kentico I didn't evaluate it in quite as much detail.</content>
+    </comment>
+    <comment isAdmin="true" id="083b810b-bc4d-4105-b4d9-91c64ee82852">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2011-01-15 10:27:10</date>
+      <content>Just an update - I read today that Umbraco 4.5 supports running in Medium Trust.&lt;br /&gt;&lt;br /&gt;There&amp;#39;s a new setting in web.config:&lt;br /&gt;&amp;lt;add key=&amp;quot;umbracoUseMediumTrust&amp;quot; value=&amp;quot;true&amp;quot; /&amp;gt;&lt;br /&gt;&lt;br /&gt;If you&amp;#39;re interested in using Umbraco &amp; search for this online, you should find a complete set of instructions.</content>
+    </comment>
+    <comment isAdmin="false" id="705917c3-20a5-4776-a0fa-25bfe5ba5f9e">
+      <author>Robert Goulet</author>
+      <email>id.vivek@ymail.com</email>
+      <date>2011-01-16 04:45:38</date>
+      <content>I tried for DOTNETNUKE . As it is completely free I tried it for the first time as to get a better idea about this concept. Initially I found it as ok but later on some problems were created and I had to uninstall it. All the CMS included in the list have also been tried by me and does not found any one to the best of my satisfaction.</content>
+    </comment>
+  </comments>
+</post>

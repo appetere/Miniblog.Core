@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>MVC Framework ViewModel naming conventions</title>
+  <slug>mvc-framework-viewmodel-naming-conventions</slug>
+  <pubDate>2012-04-24 16:40:43</pubDate>
+  <lastModified>2022-09-25 12:07:51</lastModified>
+  <excerpt>Some easily-followed conventions for naming &amp; organising your View Models in a MVC application.</excerpt>
+  <content>&lt;p&gt;There are many ways of naming &amp;amp; organising your View Models in a MVC application. This post describes some easily followed conventions for this.&lt;/p&gt;
+&lt;h2&gt;Organising the View's Models&lt;a href="/posts/files/d00da7ba-52d8-4df2-8b20-146365c4af83.jpg"&gt;&lt;img style="background-image: none; float: right; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="NamingConventions" src="/posts/files/643d8bb2-4300-4ee3-8d17-df10ba2fd411.jpg" alt="NamingConventions" width="216" height="499" align="right" border="0"&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;First we need to decide where to store the models. MVC conventions have Controllers in one directory and Views belonging to the Controller in a Views sub-directory with the same name as the Controller.&lt;/p&gt;
+&lt;p&gt;For example, for the &lt;code&gt;HomeController&lt;/code&gt; we will expect to find its Views in &lt;code&gt;/Views/Home&lt;/code&gt; or &lt;code&gt;/Views/Shared&lt;/code&gt; directories.&lt;/p&gt;
+&lt;p&gt;So it makes sense to use a similar convention for models used by Views (I'm deliberately not going to call everything a "View Model", which I'll explain shortly).&lt;/p&gt;
+&lt;p&gt;A default MVC installation includes a Models directory, so using a similar convention to Views, we can create a separate directory for each Controller under the Models directory.&lt;/p&gt;
+&lt;p&gt;In this case models used by the &lt;code&gt;HomeController&lt;/code&gt; will be found in &lt;code&gt;/Models/Home&lt;/code&gt; or &lt;code&gt;/Models/Shared&lt;/code&gt;. So now the directory a model is in makes it clear which Controller it is used by.&lt;/p&gt;
+&lt;h2&gt;Naming Convention for View Models&lt;/h2&gt;
+&lt;p&gt;When a Controller is preparing the data for a View, this data is typically encapsulated in a View Model. For example:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public ActionResult Index()
+{
+  var projects = _projectsRepository.GetAll();
+
+  var viewModel = new IndexViewModel
+          {
+            Projects = projects,
+            Date = DateTime.Now
+          };
+  return View(viewModel);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;View Model Class Name&lt;/h3&gt;
+&lt;p&gt;The convention is:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;[ActionName] + [ViewModel] 
+
+Example: Index + ViewModel = IndexViewModel&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;View Model Variable Name&lt;/h3&gt;
+&lt;p&gt;I'm all for keeping things simple, and like to use the same variable name wherever a View Model is being referred to:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;var viewModel = ...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The big advantages of these naming conventions is that it is quick to choose a name and obvious from the name &amp;amp; structure where the model is being used.&amp;nbsp; It does have the drawback that there is less semantic meaning than a carefully crafted ViewModel name, like &lt;code&gt;currentprojectsforreviewmodel&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;I have seen others naming the ViewModel after the View it is for. This makes some sense, but where Views themselves call other Partial Views, this convention breaks down.&lt;/p&gt;
+&lt;h3&gt;Other Model Naming Conventions&lt;/h3&gt;
+&lt;p&gt;The ViewModel naming convention described above works well when sending data to a View, and also for receiving data from a View if the same model is just being round-tripped.&lt;/p&gt;
+&lt;p&gt;But it isn't so clear when a request is coming in from a page that didn't start life as a ViewModel, or data has to be sent out from a Controller to something other than a View (for example a JSON request).&lt;/p&gt;
+&lt;p&gt;For these scenarios we use slightly different naming conventions.&lt;/p&gt;
+&lt;h3&gt;RequestModel and ResponseModel&lt;/h3&gt;
+&lt;p&gt;Where the Controller action is being used more like a service, perhaps to receive &amp;amp; send JSON data, it doesn't make as much sense to use the name "ViewModel".&lt;/p&gt;
+&lt;p&gt;In these scenarios we just use the same conventions as above, except using the term "RequestModel" for in-bound data and "ResponseModel" for out-bound data, instead of "ViewModel":&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;[HttpPost]
+public ActionResult Add(AddRequestModel requestModel)
+{
+  foreach (var task in requestModel.Tasks)
+  {
+     // Do something
+  }
+  // Prepare response
+  var responseModel = new AddResponseModel{...};
+
+  return Json(responseModel);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;That's Not All Folks&lt;/h2&gt;
+&lt;p&gt;These conventions are a good start, but don't cover all scenarios. For example, if your ViewModel itself contains child objects, what naming convention should you use for those?&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>mvc</category>
+  </categories>
+  <comments>
+    <comment isAdmin="false" id="7cfff86f-4a72-44be-8dc8-0591818495bf">
+      <author>Louise Eggleton</author>
+      <email>louisen@uncommonlogic.ca</email>
+      <date>2013-09-16 12:22:02</date>
+      <content>Good article, I have been using this convention and it serves me well, however I am curious what naming convention you use for child objects of ViewModels, especially child objects that don&amp;#39;t exist in the domain model?</content>
+    </comment>
+    <comment isAdmin="true" id="57312233-0a3c-4184-ac9e-0fe595a735c5">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2013-09-16 22:5:27</date>
+      <content>Hi Louise. It doesn&amp;#39;t happen that often, so I&amp;#39;ve no fixed guidelines. Although if the view model is complex enough to need child objects it might be a sign the view needs to be broken up into multiple partial views, each with their own controller action and view model.</content>
+    </comment>
+    <comment isAdmin="false" id="a5ae0bdd-550c-4e19-ab90-8379be5ddfc0">
+      <author>Louise Eggleton</author>
+      <email>louisen@uncommonlogic.ca</email>
+      <date>2014-09-17 21:4:44</date>
+      <content>I stumbled upon this post again a year later and one comment I will make is that I do often break views into multiple partial views, but that is not always an option depending, on the layout of your view. Partial views only work if all the data from the model for the partial view can be displayed in a modular fashion at a specific place in the main view. If however you have data from multiple models that is &amp;quot;co-mingled&amp;quot;, for exmaple in a table, then partial views will not work. In this case I tend to use ViewModels comprised of multiple child ViewModels. As for what naming convention I use for child ViewModels, they also use the ViewModel suffix, but rather than an ActionName prefix, the prefix is derived from the model name that the veiw model is derived from.</content>
+    </comment>
+    <comment isAdmin="false" id="b01126bf-29a9-4150-abac-8c4098867d02">
+      <author>Sheo Narayan</author>
+      <email>sheonarayan@gmail.com</email>
+      <date>2015-12-12 02:59:45</date>
+      <content>Thanks Steve,&lt;br /&gt;&lt;br /&gt;I think other naming conventions are missing here, so here you go&lt;br /&gt;&lt;br /&gt;http://techfunda.com/Howto/asp-net-mvc/19/naming-conventions-in-asp-net-mvc&lt;br /&gt;&lt;br /&gt;Thanks</content>
+    </comment>
+  </comments>
+</post>

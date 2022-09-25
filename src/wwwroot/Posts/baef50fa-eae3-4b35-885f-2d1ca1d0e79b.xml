@@ -1,0 +1,448 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Getting started with OpenID Connect</title>
+  <slug>getting-started-with-openid-connect</slug>
+  <pubDate>2014-08-07 15:41:00</pubDate>
+  <lastModified>2022-09-25 12:12:32</lastModified>
+  <excerpt>A snapshot of my experience trying to implement OpenID Connect authentication flows using release candidate versions of Katana  middleware and IdentityServer3.</excerpt>
+  <content>&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;This post is a snapshot of my experience trying to implement OpenID Connect flows for authentication and authorization using the Katana Project v3 RC2 middleware and IdentityServer3 beta 1.&lt;/p&gt;
+&lt;p&gt;The first thing that is important to realise is that OpenID Connect has its own &lt;a href="http://openid.net/specs/openid-connect-core-1_0.html" target="_blank" rel="noopener"&gt;specification&lt;/a&gt; (which you should read) and should be treated as distinct from its precursors such as OAuth 1.0, OAuth 2.0 and OpenID.&lt;/p&gt;
+&lt;p&gt;My goal was to set up an OpenID Connect &lt;a href="http://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth" target="_blank" rel="noopener"&gt;authorization code flow&lt;/a&gt; using available pluggable components.&amp;nbsp; This has meant trying out pre-release code and my conclusion (in August 2014) is that this isn't something you can do yet, without non-trivial custom coding.&lt;/p&gt;
+&lt;h2&gt;Terminology Muddle&lt;/h2&gt;
+&lt;p&gt;Conceptually we are trying to achieve two things:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;Authenticate &lt;/em&gt;the user&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Authorize &lt;/em&gt;the authenticated user to do something&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;But you will run into overloaded or confusing terminology everywhere.&amp;nbsp; For example:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The OpenID Connect specification initially starts by defining the thing that does authentication and authorization as the "OpenID Provider" (which I think could anyway be better named the "&lt;em&gt;OpenID Connect Provider&lt;/em&gt;" to avoid confusion with previous OpenID specifications, which also define an OpenID Provider).&lt;/li&gt;
+&lt;li&gt;When going into the detail of the flows, the specification then starts using the term "&lt;em&gt;Authorization Server&lt;/em&gt;" instead of "OpenID Provider" and then makes statements like "Authorization Server Authenticates the End-User", which to me is not helpful in making it clear what role each component plays.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So for the purposes of this article I will use the term &lt;em&gt;OpenID Connect Provider&lt;/em&gt; abbreviated to &lt;em&gt;OCP&lt;/em&gt; to refer to the component(s) responsible for authentication and authorization in OpenID Connect flows.&lt;/p&gt;
+&lt;h2&gt;Available Components&lt;/h2&gt;
+&lt;p&gt;My goal was to implement the OpenID Connect Authorization Code Flow using pluggable components, without much custom coding, to give browser-based access to a web-application.&lt;/p&gt;
+&lt;p&gt;The components I chose to investigate are introduced below.&amp;nbsp; The main thing to note is that although Google, for example, has "aligned" its login process with OpenID Connect, at the current time it is still new and everything I am looking at is pre-release.&lt;/p&gt;
+&lt;h3&gt;Microsoft's OpenID Connect OWIN Middleware&lt;/h3&gt;
+&lt;p&gt;I added the Microsoft.Owin.Security.OpenIdConnect 3.0.0-rc2 (pre-release) NuGet package (see the &lt;a href="http://katanaproject.codeplex.com/" target="_blank" rel="noopener"&gt;Katana Project&lt;/a&gt; for details).&lt;/p&gt;
+&lt;p&gt;Then I was able to wire up the OpenIdConnectAuthenticationMiddleware using the supplied extension.&amp;nbsp; The outline pattern being:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public partial class Startup
+{
+  public void ConfigureAuth(IAppBuilder app)
+  {
+    [....]
+        
+    app.UseOpenIdConnectAuthentication(
+      new OpenIdConnectAuthenticationOptions
+      {
+        [....]
+      });
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So what does this middleware do?&amp;nbsp; Well, in order to make it easy to plumb in, it seems to have the &lt;em&gt;ambition &lt;/em&gt;of doing "everything" relating to OpenID Connect flows.&amp;nbsp; In other words, detecting when a user needs to be redirected to the OCP, and then handling the various interactions with the OCP required.&lt;/p&gt;
+&lt;p&gt;I say &lt;em&gt;ambition&lt;/em&gt; because this initial (pre) release has very limited functionality and flow-support, as I will describe below.&lt;/p&gt;
+&lt;h3&gt;Thinktecture OpenID Connect Provider&lt;/h3&gt;
+&lt;p&gt;&lt;a href="http://leastprivilege.com/" target="_blank" rel="noopener"&gt;Dominick Baier&lt;/a&gt; is a bit of a guru on authentication and authorization and has has an OpenID Connect Provider which he calls &lt;a href="https://github.com/thinktecture/Thinktecture.IdentityServer.v3" target="_blank" rel="noopener"&gt;IdentityServer3&lt;/a&gt; (not to be confused with his Identity Server v2 for OAuth2).&amp;nbsp; As of 1st August 2014 this is at Beta 1 release.&lt;/p&gt;
+&lt;p&gt;The purpose of IdentityServer3 is to provide authentication and authorization, which the OWIN middleware can interact with, following pre-defined flows.&lt;/p&gt;
+&lt;h2&gt;What works out of the box?&lt;/h2&gt;
+&lt;p&gt;A fairly early realisation is that my goal of implementing an authorization code flow was not possible out of the box.&lt;/p&gt;
+&lt;p&gt;In broad terms the flows supported at this point in time are as follows:&lt;/p&gt;
+&lt;table class="table table-hover"&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Protocol&lt;/th&gt;
+&lt;th&gt;OpenIdConnectAuthenticationMiddleware&lt;/th&gt;
+&lt;th&gt;IdentityServer3&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Implicit Flow&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Code Flow&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Hybrid Flow&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;This does mask a lot of detail, which is set out in the sections below, based on what I found by trial and error.&lt;/p&gt;
+&lt;h3&gt;Flows Supported by OpenIdConnectAuthenticationMiddleware&lt;/h3&gt;
+&lt;p&gt;Implicit Flow is easy for the middleware to support, as it just has to redirect the user to the OCP, then its role is complete. As described below, this works fine.&lt;/p&gt;
+&lt;p&gt;It took a while debugging source code to discover that the OpenIdConnectAuthenticationMiddleware only supports hybrid-flow in the first version, and not (the simpler) code-flow.&lt;/p&gt;
+&lt;p&gt;The clue was found in &lt;code&gt;OpenIDConnectAuthenticationHandler.AuthenticateCoreAsync&lt;/code&gt; method:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;// code is only accepted with id_token, in this version, [...]
+// OpenIdConnect protocol allows a Code to be received without the id_token
+
+if (string.IsNullOrWhiteSpace(openIdConnectMessage.IdToken))
+{
+  logger.WriteWarning("The id_token is missing.");
+  return null;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Therefore the response from the OCP must include the access-code and the ID token, which is (according to the OpenID Specification), hybrid-flow.&lt;/p&gt;
+&lt;h3&gt;Hybrid Flow And Hash Fragments&lt;/h3&gt;
+&lt;p&gt;The specification says Hybrid Flow should return the access code and token(s) in the hash-fragment of the URL, which is meant for a JavaScript client to read.&lt;/p&gt;
+&lt;p&gt;So how does the (server-side) middleware receive the access-code and token(s) in this case?&lt;/p&gt;
+&lt;p&gt;The answer seems to be that the JavaScript agent should parse the hash-fragment and take anything it needs (the access-token, perhaps) and then re-package the access-code and token(s) and HTTP-post them to the Client, which the OWIN middleware can then extract and process.&lt;br&gt;The OpenID Connect specification actually gives a "non-normative" example of doing this in:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://openid.net/specs/openid-connect-core-1_0.html#FragmentNotes" target="_blank" rel="noopener"&gt;15.5.3&lt;/a&gt; Redirect URI Fragment Handling Implementation Notes&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The OpenIdConnectAuthenticationMiddleware seems to expect this to be the process used, as the only Response Mode it supports is:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;"form-post"&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The OpenID Connect specification also allows for "query" &amp;amp; "fragment" but these are not supported in this version of the middleware (see &lt;a href="http://katanaproject.codeplex.com/workitem/313" target="_blank" rel="noopener"&gt;http://katanaproject.codeplex.com/workitem/313&lt;/a&gt;)&lt;/p&gt;
+&lt;h3&gt;Flows Supported by IdentityServer3&lt;/h3&gt;
+&lt;p&gt;From AuthorizeRequestValidator.ValidateProtocol we can see that two flows are supported:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Code Flow
+&lt;ul&gt;
+&lt;li&gt;Response Types
+&lt;ul&gt;
+&lt;li&gt;"code"&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Implicit Flow
+&lt;ul&gt;
+&lt;li&gt;Response Types
+&lt;ul&gt;
+&lt;li&gt;"token" (legacy from OAuth2, &lt;em&gt;don't use&lt;/em&gt; with OpenID Connect)&lt;/li&gt;
+&lt;li&gt;"id_token"&lt;/li&gt;
+&lt;li&gt;"id_token token"&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;//////////////////////////////////////////////////////////
+// match response_type to flow
+//////////////////////////////////////////////////////////
+if (_validatedRequest.ResponseType == Constants.ResponseTypes.Code)
+{
+  Logger.Info("Flow: code");
+  _validatedRequest.Flow = Flows.Code;
+  _validatedRequest.ResponseMode = Constants.ResponseModes.Query;
+}
+else if (_validatedRequest.ResponseType == Constants.ResponseTypes.Token ||
+         _validatedRequest.ResponseType == Constants.ResponseTypes.IdToken ||
+         _validatedRequest.ResponseType == Constants.ResponseTypes.IdTokenToken)
+  {
+    Logger.Info("Flow: implicit");
+    _validatedRequest.Flow = Flows.Implicit;
+    _validatedRequest.ResponseMode = Constants.ResponseModes.Fragment;
+  }&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;span style="line-height: 1.4;"&gt;IdentityServer3 does not yet support Hybrid Flow.&lt;/span&gt;&lt;/p&gt;
+&lt;h2&gt;Implicit Flow Configuration&lt;/h2&gt;
+&lt;p&gt;Implicit Flow has a number of key defining features:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;It is intended to be used by something like a JavaScript Single Page Application (SPA) which needs to communicate with the OCP directly.&lt;/li&gt;
+&lt;li&gt;The SPA will retrieve and store the token(s) and subsequently use them when communicating with (say) an API.&lt;/li&gt;
+&lt;li&gt;The ID token (&amp;amp; access token if requested) is delivered in the hash-fragment of the URI, which means the tokens can &lt;em&gt;only&lt;/em&gt; be read in the browser.&amp;nbsp; The format would be something like:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;https://localhost/Client/#id_token=eyJ0eXAi[...]&amp;amp;access_token=eyJ0eX[...]&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Refresh (offline) tokens are not supported.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;&lt;strong&gt;OpenIdConnectAuthenticationMiddleware&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;The OpenID Connect Specification (3.2.2.1) says that the Response Type for implicit flow can be specified as either&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;id_token (just return the ID token)&lt;/li&gt;
+&lt;li&gt;id_token token (also return the access token)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So the middleware can be configured for the second case, as follows:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public partial class Startup
+{
+  public void ConfigureAuth(IAppBuilder app)
+  {
+    app.SetDefaultSignInAsAuthenticationType("External Bearer");
+    app.UseOpenIdConnectAuthentication(new OpenIdConnectAuthenticationOptions
+      {
+        ClientId = "implicitclient",
+        Authority = "http://localhost/IdentityServer3/core/",
+        RedirectUri = "https://localhost/Client/",
+
+        // "id_token" just returns the ID token.
+        // "id_token token" also returns the ID token and the access token
+        ResponseType = "id_token token",
+        ResponseMode = "fragment",
+        Scope = "openid email",
+      });
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The middleware can auto-configure itself to work with the OCP, provided that the OCP publishes information about itself at:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;/.well-known/openid-configuration&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Identity Server 3 does just that, with the following JSON returned:&lt;/p&gt;
+&lt;pre class="language-json"&gt;&lt;code&gt;{
+  "issuer": "https://localhost/IdentityServer3",
+  "jwks_uri": "http://localhost/IdentityServer3/core/.well-known/jwks",
+  "authorization_endpoint": "http://localhost/IdentityServer3/core/connect/authorize",
+  "token_endpoint": "http://localhost/IdentityServer3/core/connect/token",
+  "userinfo_endpoint": "http://localhost/IdentityServer3/core/connect/userinfo",
+  "end_session_endpoint": "http://localhost/IdentityServer3/core/connect/endsession",
+  "scopes_supported": ["openid","profile","email","read","write","offline_access"],
+  "response_types_supported": ["code","token","id_token","id_token token"],
+  "response_modes_supported": ["form_post","query","fragment"],
+  "grant_types_supported": ["authorization_code","client_credentials","password","implicit"],
+  "subject_types_support": ["pairwise","public"],
+  "id_token_signing_alg_values_supported": "RS256"
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Thus the first thing the Katana middleware does is to visit this endpoint and configure itself accordingly.&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;IdentityServer 3&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;IdentityServer3 is in beta stage at the time of writing, and the configuration to register / define a Client is just hard-coded into a class called Clients.&amp;nbsp; The relevant entry for our implicit flow Client is:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;
+new Client
+{
+  ClientName = "Implicit Clients",
+  Enabled = true,
+  ClientId = "implicitclient",
+  Flow = Flows.Implicit,
+
+  ClientUri = "https://localhost/Client/",
+  [...]
+
+  RequireConsent = true,
+  AllowRememberConsent = true,
+    
+  RedirectUris = new List&amp;lt;Uri&amp;gt;
+  {       
+    // JavaScript client
+    new Uri("http://localhost:21575/index.html"),
+ 
+    // OWIN middleware client
+    new Uri("https://localhost/Client/")
+  },
+     
+  ScopeRestrictions = new List&amp;lt;string&amp;gt;
+  {
+    Constants.StandardScopes.OpenId,
+    Constants.StandardScopes.Profile,
+    Constants.StandardScopes.Email,
+    "read",
+    "write"
+  },
+ 
+  IdentityTokenSigningKeyType = SigningKeyTypes.Default,
+  SubjectType = SubjectTypes.Global,
+  AccessTokenType = AccessTokenType.Jwt,
+     
+  IdentityTokenLifetime = 360,
+  AccessTokenLifetime = 360,
+},&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;&lt;strong&gt;Time to login!&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Something needs to start the login process, so I just created a dummy controller action with an [Authorize] attribute.&amp;nbsp; Trying to call the corresponding URL while not logged in means the OWIN middleware will redirect you to the start of the login process.&lt;/p&gt;
+&lt;p&gt;And it works.&lt;/p&gt;
+&lt;p&gt;IdentityServer3 provides us with a login box, followed by a consent screen:&lt;br&gt;&lt;br&gt;&lt;a href="/posts/files/b2af496d-b505-40ff-8b04-93d7d8eeea1d.png"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="login" src="/posts/files/209cff42-3ef6-4172-90b1-602f47ba6681.png" alt="login" width="225" height="294" border="0"&gt;&lt;/a&gt;&amp;nbsp; &lt;a href="/posts/files/d78cf032-5aa8-4f5d-8d61-62707949650c.png"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="Consent" src="/posts/files/8e508c8f-a2ba-4110-b142-eec89efed2c7.png" alt="Consent" width="339" height="293" border="0"&gt;&lt;/a&gt;&lt;br&gt;&lt;br&gt;Before finally returning the requested tokens in the hash-fragment of the redirect URI:&lt;/p&gt;
+&lt;pre&gt;https://localhost/Client/#id_token=eyJ0eXAi[...]&amp;amp;access_token=eyJ0eX[...]&lt;/pre&gt;
+&lt;p&gt;To make this flow useful we would now need to write some JavaScript to get the tokens from the hash-fragment, store them, then send them with each request to our API.&lt;/p&gt;
+&lt;h2&gt;Authorization Code Flow Configuration&lt;/h2&gt;
+&lt;p&gt;Code Flow has a number of key defining features:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The user goes through the same steps of a login screen and consent screen, as for the implicit flow described above.&lt;/li&gt;
+&lt;li&gt;But instead of sending the token(s) back at the end of this process, the OCP returns an "Authorization Code" instead.&lt;/li&gt;
+&lt;li&gt;The (server-side) Client receives this code then logs into the OCP directly and exchanges this code for the ID token and access token.&lt;/li&gt;
+&lt;li&gt;The Client then uses the token(s) on behalf of the user without the user-agent (eg a browser) ever handling the token(s) directly.&lt;/li&gt;
+&lt;li&gt;The Client can also request a refresh (offline access) token, which it can use to get new access tokens from the OCP when tokens expire.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This isn't fully supported / implemented with the components I have looked at, so the following sections show how I arrived at that conclusion.&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;OpenIdConnectAuthenticationMiddleware&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;The OpenID Connect Specification (3.1.2.1) says that the Response Type for code flow must be specified as&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;code&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This is how I tried to configure the Katana Middleware:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public partial class Startup
+{
+  public void ConfigureAuth(IAppBuilder app)
+  {
+    app.UseCookieAuthentication(new CookieAuthenticationOptions
+	{
+      AuthenticationType = CookieAuthenticationDefaults.AuthenticationType
+    });
+	app.UseOpenIdConnectAuthentication(
+     new OpenIdConnectAuthenticationOptions
+	 {
+       ClientId = "codeclient",
+       ClientSecret = "secret",
+       Authority = "http://localhost/IdentityServer3/core/",
+       RedirectUri = "https://localhost/Client",
+       ResponseType = "code",
+       ResponseMode = "query",
+       Scope = "openid email",
+       SignInAsAuthenticationType = CookieAuthenticationDefaults.AuthenticationType,
+     });
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The middleware can auto-configure itself for the OCP, as before.&lt;/p&gt;
+&lt;p&gt;The flow won't get far enough to worry about the cookie configuration, but my intent is that the middleware retrieves the tokens then stores them in session for the user.&amp;nbsp;&amp;nbsp; That way, the tokens never leave the server and are just related to the user via the session, with the session cookie round-tripping to the user-agent as normal.&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;IdentityServer3&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;The hard-coded Client configuration is this time:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;new Client
+{
+  ClientName = "Code Flow Clients",
+  Enabled = true,
+  ClientId = "codeclient",
+  ClientSecret = "secret",
+  Flow = Flows.Code,
+    
+  RequireConsent = true,
+  AllowRememberConsent = true,
+
+  ClientUri = "https://localhost/Client",
+  [...]
+
+  RedirectUris = new List&amp;lt;Uri&amp;gt;
+  {
+    // OWIN middleware client
+       new Uri("https://localhost/Client")
+  },
+
+  ScopeRestrictions = new List&amp;lt;string&amp;gt;
+  {
+    Constants.StandardScopes.OpenId,
+    Constants.StandardScopes.Profile,
+    Constants.StandardScopes.Email,
+    Constants.StandardScopes.OfflineAccess,
+    "read",
+    "write"
+  },
+      
+  IdentityTokenSigningKeyType = SigningKeyTypes.Default,
+  SubjectType = SubjectTypes.Global,
+  AccessTokenType = AccessTokenType.Reference,
+
+  IdentityTokenLifetime = 360,
+  AccessTokenLifetime = 360,
+  AuthorizationCodeLifetime = 120
+},&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note the ClientId and ClientSecret which allows the Client to login to the OCP (over TLS) before requesting the token(s).&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;Time to login!&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;The first part of the login process works fine.&amp;nbsp; We get a login box and consent screen, as before.&amp;nbsp; And in line with the OpenID Connect specification, we get an authorization code sent back to the Client, in the query string, in the format:&lt;/p&gt;
+&lt;pre&gt;https://localhost/Client?code=e92f6e[...]=OpenIdConnect.AuthenticationProperties=fkVPi[...]
+&lt;/pre&gt;
+&lt;p&gt;Code Flow then expects the Client to contact the OCP directly, and exchange the code for the ID token and access token.&lt;/p&gt;
+&lt;p&gt;But this doesn't happen.&amp;nbsp; &lt;em&gt;The OpenIdConnectAuthenticationMiddleware doesn't include any code to handle this type of response.&lt;/em&gt;&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;Why doesn't it work?&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;As described in "What works out of the box?" above:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The only flow supported by this version of the middleware is Hybrid Flow, with the access-code and ID token returned to the Client in a form post.&lt;/li&gt;
+&lt;li&gt;&lt;span style="line-height: 1.4;"&gt;The only flows supported by the beta version of IdentityServer3 are Code Flow, with the access-code returned in the Query String and Implicit Flow, with the token(s) returned in the Hash Fragment.&amp;nbsp; &lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;​So there is a mismatch both in the flows supported and the return types supported, and clearly code-flow is not possible out of the box.&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;Supported Response Modes&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Subsequent to my tests (above) the Katana team realised it was misleading to allow the middleware to be configured to request a response in the Query String, since this is not supported:&lt;/p&gt;
+&lt;pre&gt;ResponseMode = "query",&lt;/pre&gt;
+&lt;p&gt;So as of this closed &lt;a href="https://katanaproject.codeplex.com/workitem/247" target="_blank" rel="noopener"&gt;Katana issue&lt;/a&gt; the ResponseMode is now defaulted to "form_post" and the ResponseMode property has been removed from the configuration.&lt;/p&gt;
+&lt;p&gt;Section 13 of the OpenID Connect specification says it should be possible to serialize messages using &lt;em&gt;any&lt;/em&gt; of the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Query String Serialization&lt;/li&gt;
+&lt;li&gt;Form Serialization&lt;/li&gt;
+&lt;li&gt;JSON Serialization&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So I would expect this ResponseMode configuration to be re-instated in future versions.&lt;/p&gt;
+&lt;h2&gt;Hybrid Flow Configuration&lt;/h2&gt;
+&lt;p&gt;As the name suggests, Hybrid Flow has some of the characteristics of Code Flow (an access code is returned) and some of Implicit Flow (an ID token and access token can be returned).&lt;/p&gt;
+&lt;p&gt;The access code and tokens are returned in the URL's hash-fragment to the User Agent.&amp;nbsp; So if the Client also requires the access-code or token(s) the User Agent has to extract &amp;amp; repackage the items (eg in JavaScript) and POST them on to the (server-side) Client.&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;OpenIdConnectAuthenticationMiddleware&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;The OpenID Connect Specification (&lt;a href="http://openid.net/specs/openid-connect-core-1_0.html#HybridAuthRequest" target="_blank" rel="noopener"&gt;3.3.2.1&lt;/a&gt;) says that the Response Type for hybrid flow must be specified as any of:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;code id_token&lt;/li&gt;
+&lt;li&gt;code id_token token&lt;/li&gt;
+&lt;li&gt;code token (legacy from OAuth2, &lt;em&gt;don't use&lt;/em&gt; with OpenID Connect)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The variants controlling whether the ID token, access-token, or both are returned.&lt;/p&gt;
+&lt;p&gt;So the middleware would be configured to return everything, as follows:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public partial class Startup
+{
+  public void ConfigureAuth(IAppBuilder app)
+  {
+    app.SetDefaultSignInAsAuthenticationType("External Bearer");
+    app.UseOpenIdConnectAuthentication(
+      new OpenIdConnectAuthenticationOptions
+      {
+        ClientId = "hybridclient",
+        Authority = "http://localhost/IdentityServer3/core/",
+        RedirectUri = "https://localhost/Client/",
+	ResponseType = "code id_token token",
+	ResponseMode = "fragment", // maybe "form_post"?
+	Scope = "openid email",
+      });
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;There is implementation to process the ID token received and create an AuthenticationTicket in:&lt;/p&gt;
+&lt;pre&gt;OpenIdConnectAuthenticationHandler.AuthenticateCoreAsync&lt;/pre&gt;
+&lt;p&gt;But there is no implementation to convert the access-code into tokens (although an AuthorizationCodeReceivedNotification is published, which you can hook into with your own implementation).&lt;/p&gt;
+&lt;h4&gt;&lt;strong&gt;IdentityServer3&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;At this point I looked at IdentityServer3 and found it doesn't yet support Hybrid Flow.&lt;/p&gt;
+&lt;p&gt;If you request any of the hybrid flow response types, such as "code id_token token", this is rejected as not supported by the AuthorizeRequestValidator class.&lt;/p&gt;
+&lt;h2&gt;Refresh Tokens&lt;/h2&gt;
+&lt;p&gt;Another reason for wanting to use Code Flow is to allow the use of Refresh Tokens.&lt;/p&gt;
+&lt;p&gt;In our case, we have various server-side processes that need to run on behalf of the user, but without the user's involvement. Therefore if the access-token has expired, the service needs to be able to request a new one, using the refresh-token.&lt;/p&gt;
+&lt;p&gt;There is a blog post for IdentityServer 3 that describes the &lt;a href="http://github.com/thinktecture/Thinktecture.IdentityServer.v3/wiki/Refresh-Tokens" target="_blank" rel="noopener"&gt;current refresh token support&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Conclusions&lt;/h2&gt;
+&lt;p&gt;Implicit Flow is the only flow which works out of the box, with the components evaluated, at this point in time.&lt;/p&gt;
+&lt;p&gt;Authorization Code Flow is what I want to use, but this isn't implemented yet in the middleware being evaluated. Fortunately the Katana Project contains other examples, such as GoogleOAuth2AuthenticationMiddleware, which does implement code-flow, so it should be possible to write some custom middleware using the existing code to kick-start things.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>identityserver3</category>
+    <category>openid connect</category>
+    <category>owin</category>
+  </categories>
+  <comments>
+    <comment isAdmin="false" id="56c7cad4-e02d-485e-8ac8-094f05d3b4c9">
+      <author>Rony</author>
+      <email>ronyklachko@gmail.com</email>
+      <date>2015-05-17 13:57:00</date>
+      <content>Thanks! great article, clearly sums up the different issues I also encountered while trying to achieve the same results.&lt;br /&gt;&lt;br /&gt;Could you elaborate on how did handled the refresh token issue? How do you refresh your token from the client side processes, or must you post to your back channel to obtain a new token?</content>
+    </comment>
+    <comment isAdmin="true" id="0ac4a192-09fb-4968-bac0-161087cd691d">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2015-05-17 18:3:22</date>
+      <content>Clients should get a new token, if the previous one has expired (probably using a backchannel, as you say, if your authentication is still valid, eg via a cookie from the auth server).&lt;br /&gt;&lt;br /&gt;Refresh-tokens are more accurately called &amp;quot;offline-access tokens&amp;quot;. They are only meant to be used server-side when doing something long-lived on behalf of the user and the original access token has expired.&lt;br /&gt;&lt;br /&gt;Refresh tokens are not allowed client-side as this would be a security risk. If the token was hijacked the hijacker would be able to keep a session going indefinitely, probably without anyone noticing. This point isn&amp;#39;t that clear in my post, above!</content>
+    </comment>
+    <comment isAdmin="false" id="63f99282-64c7-4fdc-bd9a-29872b37b9f4">
+      <author>Steve P</author>
+      <email>stevepatches@gmail.com</email>
+      <date>2015-09-30 21:5:08</date>
+      <content>Great article. Have you found any info on whether Microsoft&amp;#39;s middleware will eventually implement code flow or if there is another one that does?</content>
+    </comment>
+    <comment isAdmin="true" id="4aff252e-0fd0-4cc5-bcb0-3a042bb8bc33">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2015-10-01 08:3:03</date>
+      <content>@Steve P - I don&amp;#39;t know if the Katana project will end up creating a general purpose code-flow middleware or not.&lt;br /&gt;&lt;br /&gt;I ended up creating one of my own. The starting point is the OpenID Connect specification, as a checklist of what needs to happen. The Katana project (https://katanaproject.codeplex.com/) does have middleware for Google, Microsoft etc from which you can copy</content>
+    </comment>
+    <comment isAdmin="false" id="6aeee978-ff01-485a-96c7-ff281de8fb45">
+      <author>Tomasz</author>
+      <email>tdjastrzebski@ymail.com</email>
+      <date>2015-10-02 08:8:22</date>
+      <content>According to this:&lt;br /&gt;http://leastprivilege.com/2014/10/10/openid-connect-hybrid-flow-and-identityserver-v3/&lt;br /&gt;Hybrid Flow support has been added to Identity Server 3 since Beta 2 in October 2014</content>
+    </comment>
+    <comment isAdmin="false" id="dd82eebe-16ca-4e5c-af2a-d622079bdfaa">
+      <author>Ahmed</author>
+      <email>ahmed.dridi@gmail.com</email>
+      <date>2015-10-14 15:57:43</date>
+      <content>Great article! Thank you for sharing your experience.&lt;br /&gt;I&amp;#39;m also struggling to try to implement the same thing.&lt;br /&gt;I&amp;#39;ve juste one question, are you sure about the way you &amp;quot;inject&amp;quot; OpenID Connect to the IdentityServer3 middleware juste by changing the hard coded Client class? Because I think this class is juste a sample of an &amp;quot;InMemory&amp;quot; Clients factory witch represents a fake set of registred clients to the OCP. So I think there is another way of adding the config to the middleware maybe by using &amp;quot;UseIdentityServerBearerTokenAuthentication&amp;quot; method.&lt;br /&gt;What you think?&lt;br /&gt;Regards</content>
+    </comment>
+    <comment isAdmin="false" id="554a1457-1580-46f4-84a3-66b99eb2d7e3">
+      <author>Kevin</author>
+      <email>jagr28@hotmail.com</email>
+      <date>2016-06-13 17:43:26</date>
+      <content>Great article, thanks for positing. One thing I disagree with from the comments is regarding the use of refresh tokens. Refresh tokens are certainly allowed on the client side and are designed to be more secure and more manageable. &lt;br /&gt;&lt;br /&gt;Before I start its really important to note/remember that the Auth server and Resource server in OAuth2 are completely separate. They are combined in the default implementation of a WebAPI project but can be hosted on completely separate servers.&lt;br /&gt;&lt;br /&gt;When making a request with an access token you are making a request to the resource server NOT the auth server. By default the resource server validates the access token is valid without contacting the auth server OR a database by using the expiry date, signing information etc of the token. An access token does not require the client id or secret to be passed with the call and so unless you have custom logic in your resource server to check the token validity, compromised long life security tokens can provide a real risk. Also, if you are using claims to do authorization etc then these claims will not be able to be refreshed and so updates to user roles etc will not obtained until a new ticket is generated. For these reasons it is wise to have short lived access tokens of a couple of mins or so. &lt;br /&gt;&lt;br /&gt;This however raises a problem. Normally, in order to generate a valid access token we need the clients credentials. If our access tokens expire every 2 mins then this would require the client to re-login every 2 mins - not very ideal really. &lt;br /&gt;&lt;br /&gt;This is where the refresh token comes in. The refresh token allows the client - or server - application to request a new access token based on the refresh token. Thus, once a user signs in, the client or server application can, in the background, request new access tokens based on this refresh token. Refresh tokens are normally generated with a long life, for example 1 year.&lt;br /&gt;&lt;br /&gt;You may now be wondering why a refresh token is any more secure than an access token and its a good question. It all comes down to the authorization flow. As mentioned above an access token is hard to revoke or change in its own right. When using refresh tokens we store the refresh token in our data repo. In our case - and this is considered an implementation detail - we allow only a single refresh token per user per client application. When the first request is made to sign in from the client, the request is validated and a new token generated, along with refresh token id. We delete any refresh tokens in the db for this client and user and then store the new refresh token id. How the client application handles the refresh token is an implementation detail of the client. Now, whenever an API operation is required, the client app can check the access token expiry, if expired can request a new one using the refresh token id without intervention from the user. Yay.&lt;br /&gt;&lt;br /&gt;Doing this allows wonderful flexibility and solves the issue of compromised tokens. As you prob noticed we are storing the refresh token id&amp;#39;s in the repo / db. If a refresh token is obtained by a malicious person 1) it is invalidated as soon as the next operation is performed on the real system - a new refresh token is generated on each request for an access token thus the malicious app becomes out of sync and will be invalidated. 2) As we store the refresh token in the DB you can invalidate it using a backend tool. All you have to do is delete the token from the db and any access requests will be denied. This allows you to log a user (or all users) out of all client applications using an admin page in your backend. Wonderful stuff :) &lt;br /&gt;&lt;br /&gt;For another great article on how to setup refresh tokens see here: http://bitoftech.net/2014/07/16/enable-oauth-refresh-tokens-angularjs-app-using-asp-net-web-api-2-owin/</content>
+    </comment>
+    <comment isAdmin="true" id="69190a9d-2c23-4bd7-b920-db7e7f4fb487">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2016-06-13 18:4:22</date>
+      <content>@Kevin - thanks for your detailed comments!&lt;br /&gt;&lt;br /&gt;I go into the question of how to use offline-access tokens in a separate post http://appetere.com/post/how-to-renew-access-tokens&lt;br /&gt;&lt;br /&gt;The point I would make is that while it is of course possible to use offline-access tokens as you have described, along with the ways you&amp;#39;ve described to mitigate security problems, this is not the intent of this type of token within OpenID Connect.&lt;br /&gt;&lt;br /&gt;I started going down the route you have described early on, but then used some consultancy from Dominick Baier (one of the authors of IdentityServer3) which led to my other post.&lt;br /&gt;&lt;br /&gt;On your specific point that a 2 minute access-token would mean a User would have to log-in every 2 minutes, this is not usually the case for browser-based Clients.  IdentityServer3 issues a cookie of its own to the browser, which proves the User authenticated.  This cookie usually has a long duration (it defaults to 10 hours, from memory).  &lt;br /&gt;&lt;br /&gt;When the access-token expires, the Client software just repeats the original authentication/token request, but because the IdentitySever3 cookie is there, it will not require the User to enter their credentials again.  There is more on this in my post.</content>
+    </comment>
+  </comments>
+</post>

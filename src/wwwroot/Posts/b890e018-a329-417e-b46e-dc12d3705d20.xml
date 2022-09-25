@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Ajax Toolkit Tab control CSS &amp; layout problems</title>
+  <slug>ajax-toolkit-tab-control-css-and-layout-problems</slug>
+  <pubDate>2009-04-09 11:26:00</pubDate>
+  <lastModified>2022-09-25 12:13:31</lastModified>
+  <excerpt>Fixing white-borders or gaps in tabs when using the ASP.NET Ajax Toolkit Tab control and overriding the default CSS.</excerpt>
+  <content>&lt;p&gt;The ASP.NET Ajax Toolkit Tab control (see the &lt;a class="smaller" href="http://www.asp.net/ajaxlibrary/act.ashx" target="_blank" rel="nofollow noopener"&gt;asp.net website&lt;/a&gt; ) has problems with a white border round the active tab, and a gap or whitespace in the middle of the tabs, when using your own custom style sheet for the control.&lt;/p&gt;
+&lt;p&gt;So, what we would like to see is:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/fff78e82-bf2e-4709-97fe-ce9e463faef2.gif"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="NormalTab" src="http://appetere.com/posts/files/c355f25a-b532-428f-b305-6e28b1c15f4b.gif" alt="NormalTab" width="132" height="56" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;But what we get are gaps in the tab:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/7cc98359-9424-49a0-8258-836d50409f72.gif"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="TabWithGaps" src="http://appetere.com/posts/files/23c503fd-a141-4384-827a-53a32011a66c.gif" alt="TabWithGaps" width="137" height="54" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;or a little white border round the active tab:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/9983f26f-3d23-4bb4-b5f0-0615b185990a.gif"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="TabWithMissingTrans" src="http://appetere.com/posts/files/4cc1579f-5efc-4b2c-908d-27c279ca3747.gif" alt="TabWithMissingTrans" width="130" height="58" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;How To Configure Ajax Tabs&lt;/h2&gt;
+&lt;p&gt;I'm assuming you already know how to use the Ajax Tabs.&amp;nbsp; The official documentation on the &lt;a class="smaller" href="http://www.asp.net/AJAX/AjaxControlToolkit/Samples/Tabs/Tabs.aspx" target="_blank" rel="nofollow noopener"&gt;ASP.NET &lt;/a&gt;site is a bit limited.&amp;nbsp; I have found a rather more useful post from &lt;a class="smaller" href="http://blogs.visoftinc.com/archive/2007/09/26/ajax-control-toolkit-tab-control-themes.aspx" target="_blank" rel="nofollow noopener"&gt;Visoft&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Gaps In Tabs&lt;/h2&gt;
+&lt;p&gt;You will only see these gaps if you have overridden the CSS styles for the tabs, and (I think) are using Themes.&lt;/p&gt;
+&lt;h3&gt;No Gaps With Default Settings&lt;/h3&gt;
+&lt;p&gt;When the tab control is rendered to the page, the class attribute for the tab container is set to three classes by default:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;div id="ctl00_ContentPlaceHolder1_TabContainer1" 
+  class="ajax__tab_xp ajax__tab_container ajax__tab_default" 
+  style="visibility: visible"&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;These classes are rendered dynamically using WebResource.axd (if you have the Ajax Toolkit installed, you can see what these CSS classes will contain at "&lt;strong&gt;AjaxControlToolkit\Tabs\Tabs.css&lt;/strong&gt;").&amp;nbsp; The relevant entries are reproduced below:&lt;/p&gt;
+&lt;pre class="language-css"&gt;&lt;code&gt;/* default layout */
+.ajax__tab_default .ajax__tab_tab {
+  margin-right:4px;
+  overflow:hidden;
+  text-align:center;
+  cursor:pointer;
+  display:-moz-inline-box;
+  display:inline-block
+}
+
+/* xp theme */
+.ajax__tab_xp .ajax__tab_tab {
+  height:13px;
+  padding:4px;
+  margin:0;
+  background:url(&amp;amp;lt;%=WebResource("AjaxControlToolkit.Tabs.tab.gif")%&amp;amp;gt;) repeat-x;}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When you use the tab control in its default state, the "default layout" CSS is read first, then overridden by the "xp theme" CSS.&amp;nbsp; So the &lt;strong&gt;right hand margin is set to zero&lt;/strong&gt; and the tabs are correctly displayed.&lt;/p&gt;
+&lt;h3&gt;Custom CSS Causes Problems&lt;/h3&gt;
+&lt;p&gt;So, next we decide we want to modify the look of the tabs slightly, and add entries to our own CSS file.&amp;nbsp; As a starting point we copy and paste all the ".ajax__tab_xp" entries from the &lt;strong&gt;AjaxControlToolkit\Tabs\Tabs.css &lt;/strong&gt;file.&amp;nbsp; We then replace ".ajax__tab_xp" with our own name ".property_tab" (changing the CssClass property in the TabContainer control to match).&amp;nbsp; So here is how the .ajax__tab_tab entry (that we showed above) now looks:&lt;/p&gt;
+&lt;pre class="language-css"&gt;&lt;code&gt;.property_tab .ajax__tab_tab
+{
+  height:13px;
+  padding:4px;
+  margin:0;
+  background:url(Tabs/tab.gif) repeat-x;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now, here comes the problem!&amp;nbsp; If you use your own CSS settings like this, the order in which the CSS is applied is swapped round, with your CSS first, and the WebResource.axd generated version second, as you can see in this image from FireBug:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/0aee45b9-43dd-41e4-8a42-1e01a25d13d5.gif"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="TabCssWrongOrder" src="http://appetere.com/posts/files/c579a481-ca5b-4829-a5e3-374cdd1aa139.gif" alt="TabCssWrongOrder" width="455" height="273" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Hey presto .. &lt;strong&gt;the right hand margin is now 4px,&lt;/strong&gt; resulting in a gap in middle of the tab:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/c2b16f67-e0d7-4ffa-b024-a82eb7ac5498.gif"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="TabWithGaps" src="http://appetere.com/posts/files/d5b0f536-e1c5-4fe9-8055-43c0fff22228.gif" alt="TabWithGaps" width="137" height="54" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;A quick fix is to boost the priority of your own styles over those of WebResource.axd, using the &lt;strong&gt;!important&lt;/strong&gt; modifier:&lt;/p&gt;
+&lt;pre class="language-css"&gt;&lt;code&gt;.property_tab .ajax__tab_tab
+{
+  margin:0 !important;
+  [other properties removed for brevity]
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then your margin settings take precedence and the space in the middle of your tabs disappears:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/166560cd-287b-4389-8197-1fabc9766dc6.gif"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="NormalTab" src="http://appetere.com/posts/files/02583f39-e23c-496a-99e1-415bf66d419b.gif" alt="NormalTab" width="132" height="56" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;White Border Round Active Tab&lt;/h2&gt;
+&lt;p&gt;This is simply a problem with the embedded graphics, that create the left &amp;amp; right sides of the tab. The backgrounds have not been set to transparent.&amp;nbsp; The offending embedded files are:&lt;/p&gt;
+&lt;pre&gt;tab-active-left.gif
+tab-active-right.gif&lt;/pre&gt;
+&lt;p&gt;Of course, you will only notice this if your background is anything except white (as here):&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/dca8d86f-ace1-4ee7-a71f-9349085f6f6e.gif"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="TabWithMissingTrans" src="http://appetere.com/posts/files/49c7e956-85b3-4a35-94d5-cda46aac80fa.gif" alt="TabWithMissingTrans" width="130" height="58" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;So one fix is simply to use a white background and no-one will ever know.&lt;/p&gt;
+&lt;p&gt;You could modify the Tab Control source code, but it is probably quicker just to add your own CSS &amp;amp; replace the offending graphics.&amp;nbsp; I have prepared the required graphics &amp;amp; included them in the zip file, at the end of this post.&lt;/p&gt;
+&lt;p&gt;Creating the required CSS follows a similar process outlined in the "Gaps In Tabs" problem, above.&lt;/p&gt;
+&lt;p&gt;You can &lt;a href="../../downloads/b890e018-a329-417e-b46e-dc12d3705d20/ajax_tab_xp_images.zip"&gt;download a zip file with all the CSS and graphics required&lt;/a&gt; for the two solutions in this post.&lt;/p&gt;
+&lt;p&gt;Note: I found these problems in toolkit V3.0.20229 and haven't checked later versions to see if they have been resolved.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories></categories>
+  <comments>
+    <comment isAdmin="false" id="d0842db7-c330-418b-b8ba-806ae4e07d9c">
+      <author>Anthony</author>
+      <email>itignition@gmail.com</email>
+      <date>2010-03-26 20:10:33</date>
+      <content>BEST example on the internet regarding this issue! Bravo!&lt;br /&gt;All other explainations used broken text and redicullous acronyms that did not provide clarity.&lt;br /&gt;&lt;br /&gt;10/10!</content>
+    </comment>
+    <comment isAdmin="false" id="b9c102c0-7616-414f-b57d-152810e1c432">
+      <author>Richard Southern</author>
+      <email>richard.southern@perryworld.co.uk</email>
+      <date>2010-10-21 10:39:15</date>
+      <content>Great article - the !important option saved me a lot of hassle.&lt;br /&gt;&lt;br /&gt;Cheers&lt;br /&gt;Richard</content>
+    </comment>
+    <comment isAdmin="false" id="2fa71c8b-0ae5-481b-a607-1694f01192f1">
+      <author>John Rob</author>
+      <email>johnpantooo@ymail.com</email>
+      <date>2012-01-04 14:33:00</date>
+      <content>Very informative post. Its really helpful for me and beginner too. Check out this link too its also having a nice post with wonderful explanation on Ajax Toolkit TabContainer Control in ASP.Net...&lt;br /&gt;https://www.mindstick.com/Articles/282/ajax-toolkit-tabcontainer-control-in-asp-dot-net&lt;br /&gt;&lt;br /&gt;Thanks</content>
+    </comment>
+    <comment isAdmin="false" id="6a965713-9ef3-44ed-a73c-6bd19d1ab4d3">
+      <author>Neezan</author>
+      <email>faustoquezanee@yahoo.com</email>
+      <date>2012-11-23 02:59:00</date>
+      <content>Very good article. Very informative. it helped me a lot.&lt;br /&gt;&lt;br /&gt;Thanks&lt;br /&gt;neezan</content>
+    </comment>
+    <comment isAdmin="false" id="203cee93-3ae7-491a-a934-735551dee055">
+      <author>Rakesh</author>
+      <email>RakeshBihar10@gmail.com&gt;</email>
+      <date>2013-01-10 20:16:00</date>
+      <content>Its 2012, and styling a tab is still crazy after all these years.&lt;br /&gt;Thanks! - very good information...&lt;br /&gt;&lt;br /&gt;I&amp;#39;ve found a small issue with disabling tabs, but I can deal with it.</content>
+    </comment>
+  </comments>
+</post>

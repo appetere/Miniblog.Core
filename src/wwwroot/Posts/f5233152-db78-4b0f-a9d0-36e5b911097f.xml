@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>OwinResponse cookies not set when remove an HttpResponse cookie</title>
+  <slug>owinresponse-cookies-not-set-when-remove-an-httpresponse-cookie</slug>
+  <pubDate>2015-09-01 19:50:00</pubDate>
+  <lastModified>2022-09-25 12:12:26</lastModified>
+  <excerpt>Workaround for a bug where a cookie set in your OWIN middleware is missing from the response received by a browser.</excerpt>
+  <content>&lt;p&gt;This is a bug I encountered when working on a web application.&amp;nbsp;&lt;/p&gt;
+&lt;h2&gt;Symptoms&lt;/h2&gt;
+&lt;p&gt;You set a cookie in your OWIN middleware, but the cookie is not returned in the response received by a browser.&lt;/p&gt;
+&lt;p&gt;The problem may be intermittent.&lt;/p&gt;
+&lt;h2&gt;Common Scenario&lt;/h2&gt;
+&lt;p&gt;You are using an ASP.NET WebForms application with &lt;code&gt;Session&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;You add &lt;code&gt;CookieAuthenticationMiddleware&lt;/code&gt; in the OWIN pipeline.&lt;/p&gt;
+&lt;p&gt;A user tries to login, seems to do so successfully, but the authentication cookie (with default name &lt;code&gt;.ASPNet.Cookies&lt;/code&gt;)&amp;nbsp; is not set, so the user is redirected back to the login page.&lt;/p&gt;
+&lt;h2&gt;Cause&lt;/h2&gt;
+&lt;p&gt;The problem is &lt;a href="http://katanaproject.codeplex.com/wikipage?title=System.Web%20response%20cookie%20integration%20issues" target="_blank" rel="nofollow noopener"&gt;described in this Katana Project post&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;In OWIN, the response headers collection is the primary storage location for response cookies. System.Web however stores response cookies in a separate HttpContext.Response.Cookies collection and then writes them out to the Response.Headers collection just before sending the response. This can cause a conflict if OWIN if both approaches are used on the same request, as the Response.Cookies collection will overwrite any cookies set via the OWIN response headers.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;For the specific example of working with Session, the Session cookie can be removed during the login process.&amp;nbsp; If this happens on the same request as the authentication cookie is being set in OWIN, the authentication cookie will be missing.&lt;/p&gt;
+&lt;h2&gt;How to Reproduce&lt;/h2&gt;
+&lt;p&gt;The problem only seems to happen when &lt;code&gt;httpResponse.Cookies.Remove&lt;/code&gt; is called, as in the following example:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;private void SetCookies()
+{
+    var owinContext = HttpContext.GetOwinContext();
+    var owinResponse = owinContext.Response;
+
+    owinResponse.Cookies.Append("owinResponseCookie1", "value1");
+
+    var httpResponse = HttpContext.Response;
+    httpResponse.Cookies.Remove("httpResponseCookie1");
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you call this &lt;code&gt;SetCookies&lt;/code&gt; method from a MVC Controller method, &amp;ldquo;owinResponseCookie1&amp;rdquo; will not be set.&lt;/p&gt;
+&lt;p&gt;Note: If you are just adding a cookie using &lt;code&gt;httpResponse.Cookies.Add&lt;/code&gt;, without calling &lt;code&gt;Remove&lt;/code&gt;, this does not seem to cause any problems.&lt;/p&gt;
+&lt;h2&gt;Workarounds&lt;/h2&gt;
+&lt;h3&gt;1. Use OnSendingHeaders&lt;/h3&gt;
+&lt;p&gt;If you have control of the code setting the cookies in the OWIN middleware, using &lt;code&gt;OnSendingHeaders&lt;/code&gt; seems to work.&lt;/p&gt;
+&lt;p&gt;So in the example below, &amp;ldquo;owinResponseCookie2&amp;rdquo; should be set, even though &amp;ldquo;owinResponseCookie1&amp;rdquo; is missing.&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;private void SetCookies()
+{
+    var owinContext = HttpContext.GetOwinContext();
+    var owinResponse = owinContext.Response;
+
+    owinResponse.Cookies.Append("owinResponseCookie1", "value1");
+
+    owinResponse.OnSendingHeaders(state =&amp;gt;
+    {
+        owinResponse.Cookies.Append("owinResponseCookie2", "value2");
+    },
+    null);
+
+    var httpResponse = HttpContext.Response;
+    httpResponse.Cookies.Remove("httpResponseCookie1");
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;2. Use only HttpResponse.Cookies OR OwinResponse.Cookies&lt;/h3&gt;
+&lt;p&gt;As there is a conflict, the most robust solution is to only set cookies in one place or the other.&lt;/p&gt;
+&lt;p&gt;If you are using the &lt;code&gt;CookieAuthenticationMiddleware&lt;/code&gt; then you can override the CookieManager with an adapter that writes the cookies to &lt;code&gt;HttpResponse&lt;/code&gt; instead of using &lt;code&gt;OwinResponse&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://katanaproject.codeplex.com/wikipage?title=System.Web%20response%20cookie%20integration%20issues" target="_blank" rel="nofollow noopener"&gt;The Katana Project post&lt;/a&gt; on this problem gives the source code for a &lt;code&gt;SystemWebCookieManager&lt;/code&gt; to do this.&amp;nbsp; The manager can be plumbed in as:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;app.UseCookieAuthentication(new CookieAuthenticationOptions
+{
+  CookieManager = new SystemWebCookieManager(),
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Fix&lt;/h2&gt;
+&lt;p&gt;This problem should be fixed in the next version of Katana targeting ASP.NET Core 1.0 where:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;the storage of response cookies has been standardized to always store them in the response header collection.&lt;/p&gt;
+&lt;/blockquote&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>owin</category>
+  </categories>
+  <comments></comments>
+</post>

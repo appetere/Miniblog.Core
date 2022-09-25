@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Generate all combinations of a sequence</title>
+  <slug>generate-all-combinations-of-a-sequence</slug>
+  <pubDate>2021-10-30 15:18:53</pubDate>
+  <lastModified>2022-09-25 12:20:08</lastModified>
+  <excerpt>Various approaches to turning a sequence of characters into every possible combination of those characters.</excerpt>
+  <content>&lt;p&gt;This is an update to a post I originally published in February 2016, and shows how functional-programming wins out over imperative programming for writing this sort of algorithm.&lt;/p&gt;
+&lt;p&gt;The goal was: given a collection of things, eg &amp;ldquo;A&amp;rdquo;, &amp;ldquo;B&amp;rdquo; and &amp;ldquo;C&amp;rdquo;, get every possible combination, where a different order is considered a different combination, using C#.&lt;/p&gt;
+&lt;p&gt;So here we&amp;rsquo;d be looking for:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;A AB AC ABC B BA BC BCA C CA CB CBA BCA CAB ACB&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To cut to the chase, the best solution in C# I have come up with so far is:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;using LanguageExt;
+using static LanguageExt.Prelude;
+
+public static class Combinations
+{
+    // eg Get(Seq("ABCDE")
+    public static Seq&amp;lt;Seq&amp;lt;T&amp;gt;&amp;gt; Get&amp;lt;T&amp;gt;(Seq&amp;lt;T&amp;gt; source) =&amp;gt;
+        source.Fold(
+            state: new Seq&amp;lt;Seq&amp;lt;T&amp;gt;&amp;gt;(),
+            folder: (state, t) =&amp;gt;
+                state.Bind(item =&amp;gt; Seq(item, t.Cons(item), item.Add(t))).Add(Seq1(t)));
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This uses the &lt;a title="https://github.com/louthy/language-ext/" href="https://github.com/louthy/language-ext/"&gt;language-ext&lt;/a&gt; library, described as &amp;ldquo;C# Functional Programming Language Extensions&amp;rdquo;.&lt;/p&gt;
+&lt;p&gt;To explain what this is doing, I&amp;rsquo;ll work backwards through applying it to strings, then not using language-ext, then using imperative programming.&lt;/p&gt;
+&lt;p&gt;A &lt;code&gt;string&lt;/code&gt; is just an &lt;code&gt;IEnumerable&amp;lt;char&amp;gt;&lt;/code&gt;, so the first method can be written for &lt;code&gt;string&lt;/code&gt; only:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;// Get("ABCDE")
+public static Seq&amp;lt;string&amp;gt; Get(string source) =&amp;gt;
+    source.Fold(
+        state: new Seq&amp;lt;string&amp;gt;(),
+        folder: (state, c) =&amp;gt;
+            state.Bind(item =&amp;gt; Seq(item, c + item, item + c)).Add(c.ToString()));&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This in turn could be rewritten without using &lt;code&gt;language-ext&lt;/code&gt; and just &lt;code&gt;LINQ&lt;/code&gt; extensions:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public static IEnumerable&amp;lt;string&amp;gt; Get(string source) =&amp;gt;
+    source.Aggregate(
+        seed: new List&amp;lt;string&amp;gt;(),
+        func: (acc, c) =&amp;gt;
+        {
+            var acc2 = acc.SelectMany(item =&amp;gt;
+                new List&amp;lt;string&amp;gt; { item, c + item, item + c }).ToList();
+            acc2.Add(c.ToString());
+            return acc2;
+        });&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And finally, we could attempt a generic version just using &lt;code&gt;LINQ&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public static IEnumerable&amp;lt;IEnumerable&amp;lt;T&amp;gt;&amp;gt; Get&amp;lt;T&amp;gt;(IEnumerable&amp;lt;T&amp;gt; source) =&amp;gt;
+    source.Aggregate(
+        seed: new List&amp;lt;List&amp;lt;T&amp;gt;&amp;gt;(),
+        func: (acc, t) =&amp;gt;
+        {
+            var acc2 = acc.SelectMany(item =&amp;gt;
+            {
+                var prepended = new List&amp;lt;T&amp;gt;() { t };
+                prepended.AddRange(item);
+
+                var appended = new List&amp;lt;T&amp;gt;(item);
+                appended.Add(t);
+
+                return new List&amp;lt;List&amp;lt;T&amp;gt;&amp;gt; { item, prepended, appended };
+            }).ToList();
+
+            acc2.Add(new List&amp;lt;T&amp;gt; { t });
+            return acc2;
+        });
+    }&lt;/code&gt;&lt;/pre&gt;
+&lt;div&gt;One key difference is that &lt;code&gt;language-ext&lt;/code&gt; types are &lt;em&gt;immutable&lt;/em&gt;.&amp;nbsp; So when you use &lt;code&gt;Add&lt;/code&gt; or &lt;code&gt;Cons&lt;/code&gt; it will return a &lt;em&gt;new&lt;/em&gt; list (here a &lt;code&gt;Seq&lt;/code&gt;).&amp;nbsp; But for C#&amp;rsquo;s &lt;code&gt;List&amp;lt;T&amp;gt;&lt;/code&gt; when you use &lt;code&gt;Add&lt;/code&gt; it modifies the existing item and returns &lt;code&gt;void&lt;/code&gt;.&amp;nbsp; So the code has to manage the process of creating a copy of each List, then prepending or appending an item, before adding it to the results.&lt;/div&gt;
+&lt;div&gt;
+&lt;h2&gt;Haskell&lt;/h2&gt;
+&lt;/div&gt;
+&lt;div&gt;It is interesting that in Haskell, I can do all this in one line of code:&lt;/div&gt;
+&lt;div&gt;
+&lt;pre class="language-haskell"&gt;&lt;code&gt;import Data.List
+combinations :: [a] -&amp;gt; [[a]]
+combinations xs = concatMap permutations $ subsequences xs&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div&gt;This is so succint partly because the &lt;code&gt;Data.List&lt;/code&gt; module provides the &lt;code&gt;permutations&lt;/code&gt; and &lt;code&gt;subsequences&lt;/code&gt; functions that do what the C# code has to define for itself.&lt;/div&gt;
+&lt;div&gt;&amp;nbsp;&lt;/div&gt;
+&lt;p&gt;Below is my original post, showing how I tried to solve the problem with imperative programming in C#, and also a stab at F#.&amp;nbsp; Hopefully it is clear why my current approach using &lt;code&gt;language-ext&lt;/code&gt; is better!&lt;/p&gt;
+&lt;h2&gt;The original post (don&amp;rsquo;t copy this code!)&lt;/h2&gt;
+&lt;p&gt;&lt;span style="font-size: small;"&gt;Published Feb 4, 2016&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;This is a simple C# algorithm that takes a sequence of characters and returns every possible combination of those characters.&lt;/p&gt;
+&lt;p&gt;The application for this was originally to test that a series of messages would be correctly handled by a message-consumer, regardless of the order in which they arrived (with a variation of the &lt;code&gt;GetCombinations&lt;/code&gt; method taking in an &lt;code&gt;IEnumerable&amp;lt;T&amp;gt;&lt;/code&gt; and returning an &lt;code&gt;IEnumerable&amp;lt;IEnumerable&amp;lt;T&amp;gt;&amp;gt;&lt;/code&gt;).&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;class Program
+{
+    static void Main(string[] args)
+    {
+        var items = "ABCDEF";
+
+        var combinations = GetCombinations(items)
+            .Where(x =&amp;gt; x.Length == items.Length)
+            .ToList();
+
+        foreach (var combination in combinations)
+        {
+            Console.WriteLine(combination);
+        }
+
+        Console.WriteLine($"Item count: {combinations.Count}");
+        Console.WriteLine($"Distinct count: {combinations.Distinct().Count()}");
+
+        Console.Read();
+    }
+
+    private static IEnumerable&amp;lt;string&amp;gt; GetCombinations(IEnumerable&amp;lt;char&amp;gt; items)
+    {
+        var combinations = new List&amp;lt;string&amp;gt; { string.Empty };
+
+        foreach (var item in items)
+        {
+            var newCombinations = new List&amp;lt;string&amp;gt;();
+
+            foreach (var combination in combinations)
+            {
+                for (var i = 0; i &amp;lt;= combination.Length; i++)
+                {
+                    newCombinations.Add(
+                      combination.Substring(0, i) +
+                      item +
+                      combination.Substring(i));
+                }
+            }
+
+            combinations.AddRange(newCombinations);
+        }
+
+        return combinations;            
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I also tried to do something similar in F# with my first draft as follows:&lt;/p&gt;
+&lt;pre class="language-fsharp"&gt;&lt;code&gt;let rec getCombinations items memo =
+
+    seq {
+        for item in items do 
+         let remainingItems = List.filter (fun i -&amp;gt; i &amp;lt;&amp;gt; item) items
+         match remainingItems with
+         | x::xs -&amp;gt; yield! getCombinations remainingItems (List.append memo [item])
+         | [] -&amp;gt; yield List.append memo [item]         
+    }
+
+let results = getCombinations ["A"; "B"; "C"; "D"] []
+
+Seq.iter (fun result -&amp;gt; printfn "%A" result) results&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;My F# code can definitely be improved on, but does illustrate how much terser F# can be over C# for these sort of algorithms.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>c#</category>
+  </categories>
+  <comments></comments>
+</post>

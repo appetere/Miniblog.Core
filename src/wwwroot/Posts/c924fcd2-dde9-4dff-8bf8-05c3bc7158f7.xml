@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>How to debug ASP.NET MVC using source code</title>
+  <slug>how-to-debug-asp-net-mvc-using-source-code</slug>
+  <pubDate>2010-01-02 11:30:00</pubDate>
+  <lastModified>2022-09-25 12:13:14</lastModified>
+  <excerpt>How you can debug Microsoft's open-source ASP.NET MVC v1.0 framework, using its source code.</excerpt>
+  <content>&lt;p&gt;This technical post explains how you can debug Microsoft's ASP.NET MVC v1.0 framework, using its source code.&lt;/p&gt;
+&lt;p&gt;Why do it?&amp;nbsp; Well apart from it just being interesting to look under the hood of one of Microsoft's first open-source products, I have found it particularly useful when building unit tests.&amp;nbsp; For example, when creating a test I may need to know what Context properties &amp;amp; methods MVC will use, in order that I can provide appropriate mock objects (using Moq in my case), for this.&amp;nbsp; By stepping into the MVC code, you can find out.&lt;/p&gt;
+&lt;p&gt;I'm assuming for this post that you already know the essentials of MVC v1.0, and have it installed on your machine (in particular, that System.Web.Mvc.dll is already installed in the Global Assembly Cache (GAC).&lt;/p&gt;
+&lt;h2&gt;What needs to be done?&lt;/h2&gt;
+&lt;p&gt;In summary we need to remove any references to System.Web.Mvc.dll in the GAC, add the source code for System.Web.Mvc to our Visual Studio solution, and update the references to point to this source code.&lt;/p&gt;
+&lt;p&gt;In my case I am also using the futures assembly Microsoft.Web.Mvc (this is mainly for the useful Html.RenderAction() extension to HtmlHelper it contains, which in .NET Framework v4 / MVC v2 has been moved to the System.Web.Mvc assembly).&amp;nbsp;&amp;nbsp; If you are not using Microsoft.Web.Mvc, then just ignore instructions that relate to it.&lt;/p&gt;
+&lt;p&gt;If your Visual Studio solution has more than one project that requires debugging (for example, a separate test project) then just apply the steps below to each project.&lt;/p&gt;
+&lt;h2&gt;1. Download the source code&lt;/h2&gt;
+&lt;p&gt;Go to the &lt;a href="http://www.codeplex.com/aspnet" target="_blank" rel="noopener"&gt;.NET page on CodePlex&lt;/a&gt; and find the link to the ASP.NET MVC1.0 Source.&lt;/p&gt;
+&lt;p&gt;Download &amp;amp; extract the .zip file's contents to a directory.&amp;nbsp; If you wish, you can then open the solution file (MvcDev.sln) in Visual Studio to directly view the code that makes MVC tick.&lt;/p&gt;
+&lt;p&gt;We are interested here, though, in how to use the code during debugging, to step into it from a running application...&lt;/p&gt;
+&lt;h2&gt;2. Delete existing GAC assembly references&lt;/h2&gt;
+&lt;p&gt;Open the project you wish to debug, using Visual Studio.&lt;/p&gt;
+&lt;p&gt;Actually, I'd recommend you make a complete copy of your application's files, and use that.&amp;nbsp; All the steps here can be reversed, but it's probably easier to have a disposable copy just for debugging.&lt;/p&gt;
+&lt;p&gt;Remove the GAC references to System.Web.Mvc.dll and Microsoft.Web.Mvc.dll (if using):&lt;/p&gt;
+&lt;p&gt;&lt;a href="/posts/files/42c7581e-c71a-42c1-ab3e-c488c5561212.png"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border: 0px;" title="MVC-delete-references" src="/posts/files/0f8475c7-6cb6-4063-bf76-d2c97155cb02.png" alt="MVC-delete-references" width="410" height="570" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;3. Add source code projects to your Visual Studio solution&lt;/h2&gt;
+&lt;p&gt;Add the source code projects, which contain the debugging versions of the MVC assemblies, to your solution:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Right-click on the name of your Solution and select
+&lt;ul&gt;
+&lt;li&gt;Add =&amp;gt; Existing Project&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Find the directory you created that contains the MVC source code and select the project file. This will be something like:
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;\YourSourceCodeDirectory\src\SystemWebMvc\System.Web.Mvc.csproj &lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Repeat for the futures assembly, Microsoft.Web.Mvc, if using:
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;\YourSourceCodeDirectory\src\MvcFutures\MvcFutures.csproj &lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;h2&gt;4. Add project references to the source code projects&lt;/h2&gt;
+&lt;p&gt;Add references from your MVC project to the source code projects, to replace the ones you deleted in &lt;a href="#DeleteGACRefs"&gt;Delete existing GAC assembly references&lt;/a&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Right-click on the References folder and select &lt;em&gt;Add Reference... &lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Select the Projects tab of the Add Reference dialogue&lt;/li&gt;
+&lt;li&gt;Select the System.Web.Mvc project:&lt;/li&gt;
+&lt;li&gt;&lt;br&gt;&lt;a href="/posts/files/2e7d949d-883e-4bb3-a37b-c9ea3815766d.png"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border: 0px;" title="MVC-add-project-reference" src="/posts/files/2810fae4-eddd-4bd3-967a-5138e5157d51.png" alt="MVC-add-project-reference" width="350" height="238" border="0"&gt;&lt;/a&gt;&lt;br&gt;&amp;nbsp;&lt;/li&gt;
+&lt;li&gt;Repeat for the MvcFutures project (if using)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;At this stage, your Visual Studio solution should like something like the following:&lt;br&gt;&lt;a href="/posts/files/30e1a326-857e-4abf-b5af-31e3da019894.png"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border: 0px;" title="MVC-projects-in-solution" src="/posts/files/4a2bab97-9985-4392-8421-8cdf6c195e03.png" alt="MVC-projects-in-solution" width="296" height="242" border="0"&gt;&lt;/a&gt;&lt;br&gt;&lt;br&gt;(This particular example is based on the "SportsStore" application in Steven Sanderson's excellent book, "Pro ASP.NET MVC Framework").&lt;/p&gt;
+&lt;h2&gt;5. Fix up the root web.config file&lt;/h2&gt;
+&lt;p&gt;By default, a number of sections in the root web.config of an MVC application include strongly named references to System.Web.Mvc, which means ASP.NET will look in the GAC for it, rather than using the debugging versions, we want to use.&lt;/p&gt;
+&lt;p&gt;By removing or modifying these references, the compiler will look in the project's /bin directory by default, and use the debugging version there instead.&lt;/p&gt;
+&lt;p&gt;Comment out the assembly reference in the &amp;lt;compilation&amp;gt; element:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;compilation debug="true"&amp;gt;
+&amp;lt;assemblies&amp;gt;
+&amp;lt;add assembly="System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=B77A5C561934E089"/&amp;gt;
+&amp;lt;add assembly="System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35"/&amp;gt;
+&amp;lt;add assembly="System.Web.Abstractions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35"/&amp;gt;
+&amp;lt;add assembly="System.Web.Routing, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35"/&amp;gt;
+&amp;lt;!--&amp;lt;add assembly="System.Web.Mvc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35"/&amp;gt;--&amp;gt;
+&amp;lt;add assembly="System.Data.DataSetExtensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=B77A5C561934E089"/&amp;gt;
+&amp;lt;add assembly="System.Xml.Linq, Version=3.5.0.0, Culture=neutral, PublicKeyToken=B77A5C561934E089"/&amp;gt;
+&amp;lt;add assembly="System.Data.Linq, Version=3.5.0.0, Culture=neutral, PublicKeyToken=B77A5C561934E089"/&amp;gt;
+&amp;lt;/assemblies&amp;gt;
+&amp;lt;/compilation&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Modify all other strongly named references to System.Web.Mvc by setting &lt;em&gt;PublicKeyToken=null &lt;/em&gt;in each case.&lt;/p&gt;
+&lt;p&gt;For my installation, the only additional references are to the MvcHttpHandler, used to verify &amp;amp; process http requests (the application runs fine without changing these references, but you will only be able to debug &amp;amp; step into the handler code if you modify the assembly's strong name, as suggested):&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;httphandlers&amp;gt;
+  &amp;lt;remove path="*.asmx" verb="*"&amp;gt;&amp;lt;/remove&amp;gt;
+  &amp;lt;add type="System.Web.Script.Services.ScriptHandlerFactory, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" path="*.asmx" verb="*" validate="false"&amp;gt;&amp;lt;/add&amp;gt;
+  &amp;lt;add type="System.Web.Script.Services.ScriptHandlerFactory, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" path="*_AppService.axd" verb="*" validate="false"&amp;gt;&amp;lt;/add&amp;gt;
+  &amp;lt;add type="System.Web.Handlers.ScriptResourceHandler, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" path="ScriptResource.axd" verb="GET,HEAD" validate="false"&amp;gt;&amp;lt;/add&amp;gt;
+  &amp;lt;!--&amp;lt;add verb="*" path="*.mvc" validate="false" type="System.Web.Mvc.MvcHttpHandler, System.Web.Mvc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35"/&amp;gt;--&amp;gt;
+  &amp;lt;add verb="*" path="*.mvc" validate="false" type="System.Web.Mvc.MvcHttpHandler, System.Web.Mvc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"/&amp;gt;
+&amp;lt;/httphandlers&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;handlers&amp;gt;
+  &amp;lt;!-- Items removed for brevity --&amp;gt;
+  &amp;lt;add name="ScriptHandlerFactory" verb="*" path="*.asmx" preCondition="integratedMode" type="System.Web.Script.Services.ScriptHandlerFactory, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35"/&amp;gt;
+  &amp;lt;add name="ScriptHandlerFactoryAppServices" verb="*" path="*_AppService.axd" preCondition="integratedMode" type="System.Web.Script.Services.ScriptHandlerFactory, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35"/&amp;gt;
+  &amp;lt;add name="ScriptResource" preCondition="integratedMode" verb="GET,HEAD" path="ScriptResource.axd" type="System.Web.Handlers.ScriptResourceHandler, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35"/&amp;gt;
+  &amp;lt;!--&amp;lt;add name="MvcHttpHandler" preCondition="integratedMode" verb="*" path="*.mvc" type="System.Web.Mvc.MvcHttpHandler, System.Web.Mvc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35"/&amp;gt;--&amp;gt;
+  &amp;lt;add name="MvcHttpHandler" preCondition="integratedMode" verb="*" path="*.mvc" type="System.Web.Mvc.MvcHttpHandler, System.Web.Mvc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"/&amp;gt;
+  &amp;lt;add name="UrlRoutingHandler" preCondition="integratedMode" verb="*" path="UrlRouting.axd" type="System.Web.HttpForbiddenHandler, System.Web, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/&amp;gt;
+&amp;lt;/handlers&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I suggest you also search your web.config for any other strongly-named instances of "System.Web.Mvc" that may need changing, in case your configuration does not match mine exactly.&lt;/p&gt;
+&lt;h2&gt;6. Fix up the Views web.config file&lt;/h2&gt;
+&lt;p&gt;There is a further web.config file in the Views directory (if you are using the MVC naming convention, otherwise in whatever directory you keep your .aspx view files).&amp;nbsp; This needs a similar fix to the root web.config to set &lt;em&gt;PublicKeyToken=null&lt;/em&gt; for each strongly-named reference to System.Web.Mvc:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;pages   validateRequest="false"
+ pageParserFilterType="System.Web.Mvc.ViewTypeParserFilter, System.Web.Mvc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+ pageBaseType="System.Web.Mvc.ViewPage, System.Web.Mvc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+ userControlBaseType="System.Web.Mvc.ViewUserControl, System.Web.Mvc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"&amp;gt;
+ &amp;lt;controls&amp;gt;
+   &amp;lt;add assembly="System.Web.Mvc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="System.Web.Mvc" tagPrefix="mvc" /&amp;gt;
+ &amp;lt;/controls&amp;gt;
+&amp;lt;/pages&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;What can go wrong?&lt;/h2&gt;
+&lt;p&gt;That should be it - after recompilation your application will spring back to life, allowing you to set break points and step into the MVC source code to examine its inner workings.&lt;/p&gt;
+&lt;p&gt;The procedure above is quite straightforward, but (as I found over a long afternoon) it is quite easy to miss something &amp;amp; get an error when trying to run your application.&lt;/p&gt;
+&lt;p&gt;However, all the errors I encountered actually boiled down to accidentally leaving a strongly-named reference to System.Web.Mvc in an assembly or web.config file.&lt;/p&gt;
+&lt;p&gt;(Other sites I searched for information on these errors suggested it was necessary to change the version number of your debugging System.Web.Mvc assembly, or delete System.Web.Mvc from the GAC,&amp;nbsp; to force the application to use your version, rather than the one in the GAC.&amp;nbsp; However, if your references are all correct, neither of these actions should be necessary).&lt;/p&gt;
+&lt;p&gt;Some of the errors you may encounter are described below.&amp;nbsp; If you come across others &amp;amp; have solutions to them, please add them to the Comments to enhance this post.&lt;/p&gt;
+&lt;h3&gt;Ambiguous Assembly&lt;/h3&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;System.Web.HttpParseException was unhandled by user code
+Message="The type 'System.Web.Mvc.ViewMasterPage' is ambiguous: it could come from assembly 
+'C:\\Windows\\assembly\\GAC_MSIL\\System.Web.Mvc\\1.0.0.0__31bf3856ad364e35\\System.Web.Mvc.dll' 
+or from assembly 
+'C:\\Path-to-application\\WebUI\\bin\\System.Web.Mvc.DLL'. 
+Please specify the assembly explicitly in the type name."
+Source="System.Web"
+ErrorCode=-2147467259
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This error will occur if you have not removed the reference to System.Web.Mvc as described in &lt;a href="#FixRootWebConfig"&gt;Fix up the root web.config file&lt;/a&gt;.&lt;/p&gt;
+&lt;h3&gt;HtmlHelper Extensions&lt;/h3&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;error CS1928: 'System.Web.Mvc.HtmlHelper' does not contain a definition for 'RenderAction' and the best extension method overload 'Microsoft.Web.Mvc.ViewExtensions.RenderAction(System.Web.Mvc.HtmlHelper, string, string)' has some invalid arguments
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This error occured when I had the release version of Microsoft.Web.Mvc.dll in the /bin directory of my project, and was using the source code (debugging) version of System.Web.Mvc.dll.&amp;nbsp; When I added the source code of Microsoft.Web.Mvc to my project (&amp;amp; updated the references to use this as described in the process above), this error went away.&lt;/p&gt;
+&lt;p&gt;This seems to be because the release version of Microsoft.Web.Mvc includes a reference to the strongly named System.Web.Mvc, which the rest of the project is no longer using (in favour of the debugging version).&lt;/p&gt;
+&lt;h3&gt;No debug information&lt;/h3&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;The following module was built either with optimizations enabled or without debug information:
+C:\Windows\assembly\GAC_MSIL\System.Web.Mvc\1.0.0.0_31bf3856ad364e35\System.Web.Mvc.dll
+To debug this module, change its project build configuration to Debug mode. To suppress this message, disable the 'Warn if no user code on launch' debugger option.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This error can occur if you have not corrected the strongly named references to System.Web.Mvc in the Views web.config file (see &lt;a href="#ViewsWebConfig"&gt;Fix up the Views web.config file&lt;/a&gt; above).&lt;/p&gt;
+&lt;p&gt;If you ignore this error, you may be notified of a further compilation error such as:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;System.Web.HttpCompileException was unhandled by user code
+Message="c:\\SomePath\\WebUI\\Views\\Products\\List.aspx(13): error CS1579: 
+foreach statement cannot operate on variables of type 'object' because 'object' 
+does not contain a public definition for 'GetEnumerator'"
+Source="System.Web"
+ErrorCode=-2147467259&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;However, once you fix the references in web.config, this error should no longer occur.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>mvc</category>
+  </categories>
+  <comments>
+    <comment isAdmin="false" id="649798b7-2ddb-4903-b2c7-105db2f55146">
+      <author>Adrian Grigore</author>
+      <email>adrian@lobstersoft.com</email>
+      <date>2010-01-03 18:42:45</date>
+      <content>Excellent post. I&amp;#39;ve been debugging with the ASP.NET MVC source code for a few months now, but I wish I have had this when I had to set it up the first time.&lt;br /&gt;&lt;br /&gt;Thanks,&lt;br /&gt;&lt;br /&gt;Adrian</content>
+    </comment>
+    <comment isAdmin="false" id="e51dac88-e62a-49da-8e05-b99805d7826a">
+      <author>Stuart Clode</author>
+      <email>sclode@hodes.co.uk</email>
+      <date>2010-01-18 11:5:49</date>
+      <content>Hi Steve, Thanks for posting this - worked first time for me. I was using Steve Sandersons instructions which don&amp;#39;t actually work on his own sports store example. I guess he started using the MvcFutures assembly after he wrote that post.&lt;br /&gt;&lt;br /&gt;stuart</content>
+    </comment>
+    <comment isAdmin="false" id="4510e6f5-c190-452c-80d2-47dee218d7db">
+      <author>Adil Zafar</author>
+      <email>adilzafar@hotmail.com</email>
+      <date>2010-02-10 14:56:28</date>
+      <content>Thanks for an excellent post Steve. Helped me alot.</content>
+    </comment>
+    <comment isAdmin="false" id="f2ddfc16-e8b6-4aee-a026-7b102368d74c">
+      <author>Tahir Hassan</author>
+      <email>t.a.hassan@gmail.com</email>
+      <date>2010-06-03 11:31:48</date>
+      <content>Thank you for this! It was quite easy to set up.&lt;br /&gt;&lt;br /&gt;I can confirm that it works for MVC 2 as well. The only additional thing I did was to put null for the assemblyIdentity for System.Web.Mvc for the binding redirect.</content>
+    </comment>
+    <comment isAdmin="false" id="fa4eaa86-d72d-43bc-8e48-72690af33498">
+      <author>jp</author>
+      <email>webcontri@gmail.com</email>
+      <date>2010-07-10 14:44:49</date>
+      <content>Excellent article. Thanks very much!</content>
+    </comment>
+    <comment isAdmin="false" id="a07ccd00-89f2-42c5-a34b-3c1dfcf03ed7">
+      <author>Pascal</author>
+      <email>scalius@msn.com</email>
+      <date>2010-06-10 04:48:45</date>
+      <content>It works with ASP.Net MVC3 as well but you may have to update some references in the MVC3 project for System.Web.Razor, System.Web.WebPages, System.Web.WebPages.Razor.&lt;br /&gt;&lt;br /&gt;A caveat which I have not figured out yet is Intellisense does not work anymore in my Razor views.</content>
+    </comment>
+  </comments>
+</post>

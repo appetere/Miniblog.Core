@@ -1,0 +1,215 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Getting started with Entity Framework Code First Migrations</title>
+  <slug>entity-framework-code-first-migrations</slug>
+  <pubDate>2012-04-27 14:51:00</pubDate>
+  <lastModified>2022-09-25 12:12:41</lastModified>
+  <excerpt>A first-time walkthrough upgrading Entity Framework 4.2 to 4.3.1 and using Code First database migrations.</excerpt>
+  <content>&lt;p&gt;A first-time walkthrough upgrading Entity Framework 4.2 to 4.3.1 and using Code First database migrations.&lt;/p&gt;
+&lt;h2&gt;Why this post?&lt;/h2&gt;
+&lt;p&gt;The &lt;a href="http://blogs.msdn.com/b/adonet/archive/2012/02/09/ef-4-3-code-based-migrations-walkthrough.aspx" target="_blank" rel="noopener"&gt;ADO.NET Team Blog&lt;/a&gt; has a walkthrough on how to use migrations. This is a good start, but I found when doing it for myself, the post didn't cover everything that I had to do to make it work. So I've documented my experience here.&lt;/p&gt;
+&lt;p&gt;The main difference to the ADO.NET blog walkthrough is that this is for an upgrade from an existing EF4.2 model, rather than starting from scratch in EF4.3. I've found one breaking-change so far (in the naming convention used for keys in the database) and some additional steps that are needed to enable migrations for the first time.&lt;/p&gt;
+&lt;h2&gt;What are Migrations?&lt;/h2&gt;
+&lt;p&gt;While you are developing a domain model using Entity Framework Code First, you can automatically generate the database-schema from your domain model's code (hence the name).&lt;/p&gt;
+&lt;p&gt;Things get more difficult if you have multiple developers working on the project, each with their own local database. Similarly if the project has gone live and development is still continuing, it is not that easy to deploy the changes you've made to the live system.&lt;/p&gt;
+&lt;p&gt;This is where migrations come in. As you modify the Domain Model, migrations can be used to record a series of steps which can then be applied by other developers or to the live system. This includes pre-populating data, adding indexes, as well as running SQL commands for anything not directly supported by migrations at the moment.&lt;/p&gt;
+&lt;h3&gt;Creating a Test Database&lt;/h3&gt;
+&lt;p&gt;As an aside, Code First makes testing with a real database straightforward.&lt;/p&gt;
+&lt;p&gt;In the example below I set the initializer to &lt;code&gt;DropCreateDatabaseAlways&lt;/code&gt; so that as soon as the &lt;code&gt;DbContext&lt;/code&gt; is instantiated, the database will be dropped, recreated with the latest schema and then populated with known seed-data:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;[TestFixture]
+public class ContextInitializeTest
+{
+  [TestFixtureSetUp]
+  public void Setup()
+  {
+    Database.SetInitializer(new CustomContextInitializer());
+  }
+  [Test]
+  public void Trigger_Context_Initialize()
+  {
+     var context = new TestContext("Entities");
+
+     var customers = context.Customers.ToList();
+     Assert.That(customers.Count(), Is.GreaterThan(0));             
+  }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This initializer will drop the database, whether anything structural needs to change or not:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public class CustomContextInitializer : 
+   DropCreateDatabaseAlways&amp;lt;CustomContext&amp;gt;
+{
+  protected override void Seed(CustomContext context)
+  {
+    var seedData = new EntitySeedData();
+
+    context.Customers.Add(seedData.Customer1);
+    context.Customers.Add(seedData.Customer2);
+
+    base.Seed(context);
+  }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Starting Point&lt;/h2&gt;
+&lt;p&gt;My starting point was an existing Entity Framework 4.2 Code First project, which I wanted to upgrade to 4.3.1 and start using migrations on.&lt;/p&gt;
+&lt;p&gt;I had previously used NuGet to install Entity Framework, and will be using Package Manage Console to run the commands for migrations.&lt;/p&gt;
+&lt;h2&gt;Upgrade EF from 4.2 to 4.3&lt;/h2&gt;
+&lt;p&gt;This looked easy. I'd originally installed Entity Framework 4.2 with NuGet. I just opened NuGet again, found EF4.3.1 and clicked install. The install process added 4.3, then tidied up by removing 4.2 from the installed packages. Later, I found a breaking-change which needs fixing before going any further:&lt;/p&gt;
+&lt;h3&gt;Key-names breaking change&lt;/h3&gt;
+&lt;p&gt;I only hit this problem when I came to delete some existing entities, using migrations. The issue is that the naming convention for SQL Server table Keys has changed from EF4.2 to EF4.3 when using code-first to generate the database:&lt;/p&gt;
+&lt;p&gt;&lt;a href="/posts/files/f8899799-a8e4-48ad-a4ea-84a5e09e73e7.jpg"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="KeyNames" src="/posts/files/f5a37625-a2c0-40b9-8043-b18c99392e4b.jpg" alt="KeyNames" width="714" height="187" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;This causes a problem, as migrations assumes the EF4.3.1 convention has been used and it generates update statements using the new naming convention. The existing key is then not found, and you receive an error such as:&lt;/p&gt;
+&lt;pre&gt;Applying explicit migration: 201205011250118_RemoveQuestions.
+
+ALTER TABLE [Questions] DROP CONSTRAINT [FK_Questions_QuestionTypes_QuestionTypeId]
+System.Data.SqlClient.SqlException (0x80131904): 'FK_Questions_QuestionTypes_QuestionTypeId' is not a constraint.
+Could not drop constraint. See previous errors.&lt;/pre&gt;
+&lt;p&gt;My workaround was simply to re-initialise my database, using the approach described in "What are Migrations?", above. This dropped &amp;amp; regenerated the database, using the new Key naming conventions.&lt;/p&gt;
+&lt;p&gt;If anyone has a solution that can be applied to an existing database, in production, please do add a comment at the end with your approach.&lt;/p&gt;
+&lt;h2&gt;Enabling Migrations&lt;/h2&gt;
+&lt;p&gt;The first command you need to run in Package Manager Console is "Enable-Migrations".&lt;/p&gt;
+&lt;p&gt;I had to resolve three problems before this would work:&lt;/p&gt;
+&lt;h3&gt;Set the default project&lt;/h3&gt;
+&lt;p&gt;The first problem was easy to fix. The Package Manager Console has a drop-down for the Default Project, and I had it set to my WebUI project, rather than the DomainModel project containing my Context. If you forget, you'll get the warning below:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/eb2b19fb-3d3e-43a4-997e-b6e83071b796.jpg"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="PM" src="http://appetere.com/posts/files/9f7fdba6-3ad7-418e-b0f9-2c111ae081fd.jpg" alt="PM" width="733" height="119" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;Add a Default Constructor&lt;/h3&gt;
+&lt;p&gt;Running Enable-Migrations again then failed for me with the error message:&lt;/p&gt;
+&lt;pre style="brush: plain;"&gt;The target context 'DomainModel.EntityFramework.CustomContext' is not constructible. 
+Add a default constructor or provide an implementation of IDbContextFactory.
+&lt;/pre&gt;
+&lt;p&gt;The problem here is that migrations tries to use the default (parameter-less) constructor to create an instance of the Context, but my Context did not have a default constructor. The reason being that I use Castle Windsor for dependency injection, and was using the IoC container to pass the connection string in, when it instantiates my Context.&lt;/p&gt;
+&lt;p&gt;I didn't want to spend time looking into the IDbContextFactory option, so to get things working I created a default constructor in my Context, and hard-coded the name of the connection string when calling the base DbContext:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public class CustomContext : DbContext
+{
+  public CustomContext() :base("name=Entities") {} 
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Specify which Context to migrate&lt;/h3&gt;
+&lt;p&gt;So I tried again. New error message this time:&lt;/p&gt;
+&lt;pre&gt;PM&amp;gt; Enable-Migrations
+More than one class deriving from DbContext found in the current project.
+Edit the generated Configuration class to specify the context to enable migrations for.&lt;/pre&gt;
+&lt;p&gt;The message was quite accurate. I do have more than one class deriving from DbContext in the project. In my case this is because I have a sub-class of my Context that adds tracing functionality (using the "Entity Framework Tracing Provider" downloadable from NuGet).&lt;/p&gt;
+&lt;p&gt;Running the command above adds a new "Migrations" directory to the project and a Configuration file:&lt;/p&gt;
+&lt;pre&gt;Migrations\Configuration.cs&lt;/pre&gt;
+&lt;p&gt;So, doing what the error message says, I opened the Configuration file and where marked with "TODO" I replaced the placeholder text with the name of my Context class:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;internal sealed class Configuration : 
+  DbMigrationsConfiguration&amp;lt;/* TODO: put your Code First context type name here */&amp;gt;
+{
+  public Configuration()
+  {
+    AutomaticMigrationsEnabled = false;
+  }
+
+  protected override void Seed(/* TODO: put your Code First context type name here */ context)
+  {
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;With that change migrations now knows which Context we're working with and we're ready to continue. I've not looked into what you do if you do have two independent Contexts in one project, that both need migrating, but my first thought would be to refactor the code so that each Context is in its own project.&lt;/p&gt;
+&lt;h2&gt;Initialising Migrations&lt;/h2&gt;
+&lt;h3&gt;Preparing the initial migration code file&lt;/h3&gt;
+&lt;p&gt;The next step is to initialise migrations so it knows what the model is now, and can can keep track of changes you made that you will later want to migrate. The command &amp;amp; its result was:&lt;/p&gt;
+&lt;pre&gt;PM&amp;gt; Add-Migration Initial
+
+Scaffolding migration 'Initial'.
+
+The Designer Code for this migration file includes a snapshot of your current Code First model. 
+This snapshot is used to calculate the changes to your model when you scaffold the next migration. 
+If you make additional changes to your model that you want to include in this migration, then you 
+can re-scaffold it by running 'Add-Migration 201204271336508_Initial' again.
+&lt;/pre&gt;
+&lt;p&gt;This adds a new file to the Migrations directory ("Add-Migration 201204271336508_Initial" in my case). The date is added to the name by migrations, so that it can keep track of the order in which multiple migrations might need to be applied.&lt;/p&gt;
+&lt;p&gt;Because my model &amp;amp; database already existed, this file just contains empty methods:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public partial class Initial : DbMigration
+{
+  public override void Up()
+  {}
+        
+  public override void Down()
+  {}
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In subsequent migrations "Up" will contain the code to migrate a database to your new model and "Down" will contain the code to undo the change and revert back to the previous version.&lt;/p&gt;
+&lt;h3&gt;Preparing the __MigrationHistory Table&lt;/h3&gt;
+&lt;p&gt;Migrations keeps track of which code-files have been applied to the database using a &lt;em&gt;System Table&lt;/em&gt; added to the database called __MigrationHistory. As I was upgrading from EF4.2 to 4.3, this table didn't exist. To fix this, you run another command (the -verbose parameter is optional):&lt;/p&gt;
+&lt;pre&gt;PM&amp;gt; Update-Database -verbose
+
+Using NuGet project 'DomainModel'.
+
+Using StartUp project 'WebUI'.
+
+Target database is: 'Entities' (DataSource: .\SQLEXPRESS2008R2, Provider: System.Data.SqlClient, Origin: Configuration).
+
+Applying explicit migrations: [201204271336508_Initial].
+
+Applying explicit migration: 201204271336508_Initial.
+
+....&lt;/pre&gt;
+&lt;p&gt;We're now ready to go and can start using Migrations!&lt;/p&gt;
+&lt;h3&gt;Where's the connection string?&lt;/h3&gt;
+&lt;p&gt;One nice feature I noticed is that you don't have to specify the connection string in the config file of the project that contains the Context, if it is already specified in the config file of a different StartUp project. In my case, my "DomainModel" project contains the Context, but the connection strings are specified in web.config of my "WebUI" project.&lt;/p&gt;
+&lt;p&gt;By setting my StartUp project to "WebUI" (view the Properties for your Visual Studio Solution, and set the StartUp project there) it seems to happily get the connection string from that project.&lt;/p&gt;
+&lt;p&gt;You can see this when the Update-Database command was run (above), in the line:&lt;/p&gt;
+&lt;pre&gt;Using StartUp project 'WebUI'.&lt;/pre&gt;
+&lt;h2&gt;Migrating a Domain Model&lt;/h2&gt;
+&lt;p&gt;Finally, we're ready to do an actual migration. And this part actually seems to work really well. I'll just give a quick intro here, as the main purpose of the post was to describe how to get things set up.&lt;/p&gt;
+&lt;h3&gt;Make a change to the Domain Model&lt;/h3&gt;
+&lt;p&gt;To test things out, I added a new field to an existing table:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public bool MigrationTest { get; set; }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Scaffolding the change into Code&lt;/h3&gt;
+&lt;p&gt;Back to the Package Manager Console for another command, which detects what has changed. You need to give the migration a name, so I used "MigrationTest":&lt;/p&gt;
+&lt;pre&gt;PM&amp;gt; Add-Migration MigrationTest
+
+Scaffolding migration 'MigrationTest'.
+&lt;/pre&gt;
+&lt;p&gt;This prepares a code-file that encapsulates the change:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public partial class MigrationTest : DbMigration
+{
+  public override void Up()
+  {
+    AddColumn("Tests", "MigrationTest", c =&amp;gt; c.Boolean(nullable: false));
+  }       
+  public override void Down()
+  {
+    DropColumn("Tests", "MigrationTest");
+  }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The name of the file includes the date/time, in my case:&lt;/p&gt;
+&lt;pre&gt;201204271344007_MigrationTest.cs
+&lt;/pre&gt;
+&lt;h3&gt;Applying the change to the Development database&lt;/h3&gt;
+&lt;p&gt;Now we run Update-Database again:&lt;/p&gt;
+&lt;pre&gt;PM&amp;gt; Update-Database
+&lt;/pre&gt;
+&lt;p&gt;But this time, migrations notices the new code-file we've just created and runs the "Up" method within it, to apply the changes to the database.&lt;/p&gt;
+&lt;h3&gt;Applying the change to another Developer's database&lt;/h3&gt;
+&lt;p&gt;Simples. Just check the migration code-files into source-control. The other developer checks them out and applies them to their own development version of the database using Package Manager Console.&lt;/p&gt;
+&lt;h3&gt;Undoing our changes&lt;/h3&gt;
+&lt;p&gt;Adding the field above was just a test, but undoing the change is a breeze. Just tell migrations to update the database to a specific, earlier, revision. In this case, I'm reverting back to the initial state:&lt;/p&gt;
+&lt;pre&gt;PM&amp;gt; Update-Database -TargetMigration:201204271336508_Initial
+&lt;/pre&gt;
+&lt;p&gt;This time the "Down" commands are run in the code-files to undo the changes made.&lt;/p&gt;
+&lt;h3&gt;Applying the changes to a Production database&lt;/h3&gt;
+&lt;p&gt;This is really where we've been trying to get to. We can now export a SQL script that includes everything that has changed from our initial database by running the command:&lt;/p&gt;
+&lt;pre&gt;PM&amp;gt; Update-Database -Script -SourceMigration:$InitialDatabase -TargetMigration:"MigrationTest"&lt;/pre&gt;
+&lt;p&gt;The SQL script is shown in a new tab in Visual Studio.&lt;/p&gt;
+&lt;p&gt;Or if you just want a script of the changes for one migration, you can use:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;PM&amp;gt; Update-Database -Script -TargetMigration:"MigrationTest"&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Summary&lt;/h2&gt;
+&lt;p&gt;The main purpose of this post was to document my experience of setting up Code-First migrations, with hopefully some useful pointers about a few problems you might encounter along the way. The main difference to the ADO.NET blog walkthrough I provided a link to, is that this is for an upgrade, rather than starting from scratch in EF4.3.&lt;/p&gt;
+&lt;p&gt;First impressions are good. There is of course much more you can do to configure the migrations, which I've not even touched on here.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>entity framework</category>
+  </categories>
+  <comments>
+    <comment isAdmin="false" id="04895bfe-2f08-4166-a9ba-046a3c798661">
+      <author>Alban</author>
+      <email>a.feron@amber-tech.fr</email>
+      <date>2012-07-16 17:5:34</date>
+      <content>I came across the same key-name problem when using an EF4.2-created production database and later upgraded to EF4.3.&lt;br /&gt;&lt;br /&gt;Thanks to this blog post: http://davidbrycehoward.com/archive/2011/01/naming-and-renaming-database-constraints/ I was able to rename the constraint before dropping it.&lt;br /&gt;&lt;br /&gt;To do this, just add &amp;quot;Sql(&amp;quot;EXEC sp_rename &amp;#39;old_name&amp;#39;, &amp;#39;new_name&amp;#39;&amp;quot;);&amp;quot; before the &amp;quot;DropForeignKey()&amp;quot; line. And don&amp;#39;t forget to add the reverted version in the &amp;quot;Down()&amp;quot; method.&lt;br /&gt;&lt;br /&gt;Another solution would be to drop/add the FK using the &amp;quot;Sql()&amp;quot; method.</content>
+    </comment>
+    <comment isAdmin="true" id="95d2acc1-69a1-4501-8129-530b03e5cf50">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2016-03-20 19:43:58</date>
+      <content>Hi Alban&lt;br /&gt;Useful tip - thanks for posting it. Since writing the post I&amp;#39;ve also started using the Sql() construct for data-motion during database migrations and find it works well.</content>
+    </comment>
+  </comments>
+</post>

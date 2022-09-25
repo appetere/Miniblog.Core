@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Serializing interfaces with Json.NET</title>
+  <slug>serializing-interfaces-with-jsonnet</slug>
+  <pubDate>2018-02-22 19:07:28</pubDate>
+  <lastModified>2022-09-25 12:11:53</lastModified>
+  <excerpt>How to simply serialize and deserialize an interface with several possible concrete implementations using Json.NET</excerpt>
+  <content>&lt;p&gt;If we have an object where one of the properties is an interface, with several possible concrete implementations, how can we simply serialize and deserialize the object with Json.NET?&lt;/p&gt;
+&lt;p&gt;Take the example of a &lt;code&gt;Garage&lt;/code&gt; that sells vehicles:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public class Garage
+{
+    public IEnumerable&amp;lt;IVehicle&amp;gt; Stock { get; set; }
+
+    public Manager Manager { get; set; }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;The vehicles we sell include cars and buses:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public class Car : IVehicle
+{
+    public string Make { get; set; }
+    public string Colour { get; set; }
+}
+
+public class Bus : IVehicle
+{
+    public string Brand { get; set; }
+    public int Length { get; set; }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;Where &lt;code&gt;IVehicle&lt;/code&gt; is just used as a marker interface:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public interface IVehicle { }&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;For good measure, we also have a garage manager:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public class Manager
+{
+    public string Name { get; set; }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;We now create some stock for our garage:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;IVehicle car = new Car
+{
+    Make = "Ford",
+    Colour = "Red"
+};
+
+IVehicle bus = new Bus
+{
+    Brand = "Leyland",
+    Length = 20
+};
+
+var garage = new Garage
+{
+    Manager = new Manager { Name = "Steve" },
+    Stock = new List&amp;lt;IVehicle&amp;gt; { car, bus }
+};&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;Using default settings we try to serialize the object:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;string defaultJson = JsonConvert.SerializeObject(garage);&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;The JSON produced looks ok on first inspection:&lt;/p&gt;
+&lt;pre class="language-json"&gt;&lt;code&gt;{
+	"Stock":
+		[{"Make":"Ford","Colour":"Red"},
+		 {"Brand":"Leyland","Length":20}],
+	"Manager":{"Name":"Steve"}
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;But if we then try to deserialize that:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;Garage result = JsonConvert.DeserializeObject&amp;lt;Garage&amp;gt;(defaultJson);&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;We have a problem:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;Newtonsoft.Json.JsonSerializationException: 'Could not create an instance
+of type Serialization.IVehicle. Type is an interface or abstract class and
+cannot be instantiated. Path 'Stock[0].Make', line 1, position 18.'&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;In other words, Json.NET has no way of knowing the concrete classes each type of vehicle should be deserialized into.&lt;/p&gt;
+&lt;p&gt;To fix this, we need to include some sort of discriminator field in the JSON, from which we can get the concrete type when deserializing.&lt;/p&gt;
+&lt;p&gt;Json.NET offers a possible solution:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;string json = JsonConvert.SerializeObject(garage, new JsonSerializerSettings
+{
+    TypeNameHandling = TypeNameHandling.Auto
+});&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;This instructs the serializer to add a discriminator when the type isn&amp;rsquo;t obvious (note that as &lt;code&gt;Manager&lt;/code&gt; is a concrete class it does not need a discriminator):&lt;/p&gt;
+&lt;pre class="language-json"&gt;&lt;code&gt;{
+	"Stock": [{
+		"$type": "Serialization.Car, Serialization",
+		"Make": "Ford",
+		"Colour": "Red"
+	},
+	{
+		"$type": "Serialization.Bus, Serialization",
+		"Brand": "Leyland",
+		"Length": 20
+	}],
+	"Manager": {
+		"Name": "Steve"
+	}
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;That&amp;rsquo;s looking &lt;em&gt;better&lt;/em&gt; and will happily deserialize if we use the same settings:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;Garage result = JsonConvert.DeserializeObject&amp;lt;Garage&amp;gt;(json, new JsonSerializerSettings
+{
+    TypeNameHandling = TypeNameHandling.Auto
+});&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;But we still have a possible future deserialization problem.&amp;nbsp; The discriminator value is the full type name (in my case both the assembly and namespace are &amp;ldquo;Serialization&amp;rdquo;).&amp;nbsp; What if we refactor the code and the namespace changes?&amp;nbsp; We will be unable to deserialize any existing JSON afterwards.&lt;/p&gt;
+&lt;p&gt;One way of fixing this is to override the discriminator name, just to use the type-name.&lt;/p&gt;
+&lt;p&gt;First we need a custom &lt;code&gt;ISerializationBinder&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public class KnownTypesBinder : ISerializationBinder
+{
+    public IList&amp;lt;Type&amp;gt; KnownTypes { get; set; }
+
+    public Type BindToType(string assemblyName, string typeName)
+    {
+        return KnownTypes.SingleOrDefault(t =&amp;gt; t.Name == typeName);
+    }
+
+    public void BindToName(Type serializedType, out string assemblyName, out string typeName)
+    {
+        assemblyName = null;
+        typeName = serializedType.Name;
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;Then we use this for the vehicle classes:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;string json = JsonConvert.SerializeObject(garage, new JsonSerializerSettings
+{
+    TypeNameHandling = TypeNameHandling.Auto,
+    SerializationBinder = new KnownTypesBinder
+    {
+        KnownTypes = new List&amp;lt;Type&amp;gt;
+        {
+            typeof(Car),
+            typeof(Bus)
+        }
+    }
+});&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;The JSON produced is:&lt;/p&gt;
+&lt;pre class="language-json"&gt;&lt;code&gt;{
+	"Stock": [{
+		"$type": "Car",
+		"Make": "Ford",
+		"Colour": "Red"
+	},
+	{
+		"$type": "Bus",
+		"Brand": "Leyland",
+		"Length": 20
+	}],
+	"Manager": {
+		"Name": "Steve"
+	}
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Provided we then deserialize using the same settings, this solves the problem.&lt;/p&gt;
+&lt;p&gt;There are other way of tackling this problem, such as using a custom &lt;code&gt;JsonConverter&lt;/code&gt; to add your own discriminator, then having the converter instantiate whichever concrete class is required.&amp;nbsp; But in a system where you are in control of both the serialization and deserialization, the approach above is much simpler.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>c#</category>
+    <category>json.net</category>
+  </categories>
+  <comments></comments>
+</post>

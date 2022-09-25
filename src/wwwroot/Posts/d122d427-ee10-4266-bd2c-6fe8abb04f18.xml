@@ -1,0 +1,313 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Security HTTP response headers for .NET websites and APIs</title>
+  <slug>security-http-response-headers-for-net-websites-and-apis</slug>
+  <pubDate>2018-11-10 14:53:28</pubDate>
+  <lastModified>2022-09-25 12:11:47</lastModified>
+  <excerpt>How to add and remove security-related HTTP response headers for HTML pages and API endpoints, for .NET web applications hosted in IIS.</excerpt>
+  <content>&lt;p&gt;The Open Web Application Security Project (&lt;a href="https://www.owasp.org/index.php/Main_Page" target="_blank" rel="noopener"&gt;OWASP&lt;/a&gt;) makes various recommendations about HTTP response headers that should be added, or removed, for security.&lt;/p&gt;
+&lt;p&gt;This post lists the recommended HTTP response headers for HTML pages and API endpoints, and provides examples of how to configure them in .NET web applications hosted by IIS.&lt;/p&gt;
+&lt;p&gt;Note: The &lt;a href="https://www.owasp.org/index.php/Main_Page" target="_blank" rel="noopener"&gt;OWASP&lt;/a&gt; pages are the source of the recommendations, but the Mozilla pages (linked to below) generally have better explanations.&lt;/p&gt;
+&lt;h2&gt;HTTP Response Headers&lt;/h2&gt;
+&lt;div class="table-responsive"&gt;
+&lt;table class="table table-hover"&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Header&lt;/th&gt;
+&lt;th&gt;HTML Pages&lt;/th&gt;
+&lt;th&gt;API Endpoints&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Content-Security-Policy&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;-&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Content-Type&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Referrer-Policy&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;-&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Server&lt;/td&gt;
+&lt;td&gt;Clear&lt;/td&gt;
+&lt;td&gt;Clear&lt;/td&gt;
+&lt;td&gt;This is a standard HTTP header, so also ok to just send it with no value&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Strict-Transport-Security&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;X-AspNet-Version Header&lt;/td&gt;
+&lt;td&gt;Remove&lt;/td&gt;
+&lt;td&gt;Remove&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;X-AspNetMvc-Version Header&lt;/td&gt;
+&lt;td&gt;Remove&lt;/td&gt;
+&lt;td&gt;Remove&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;X-Content-Type-Options&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;X-Frame-Options&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;?&lt;/td&gt;
+&lt;td&gt;&lt;a href="https://security.stackexchange.com/a/147559"&gt;This post&lt;/a&gt; suggests there are advanced attacks where this is relevant for an API&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;X-Powered-By Header&lt;/td&gt;
+&lt;td&gt;Remove&lt;/td&gt;
+&lt;td&gt;Remove&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;X-XSS-Protection&lt;/td&gt;
+&lt;td&gt;Set&lt;/td&gt;
+&lt;td&gt;-&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;h2&gt;Setting headers in &lt;code&gt;web.config&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;Headers that should be set/removed/cleared on every request by IIS, can be specified in &lt;code&gt;web.config&lt;/code&gt;&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;?xml version="1.0" encoding="utf-8"?&amp;gt;
+&amp;lt;configuration&amp;gt;
+  &amp;lt;system.web&amp;gt;
+    &amp;lt;!-- Suppress "X-AspNet-Version" header --&amp;gt;
+    &amp;lt;httpRuntime enableVersionHeader="false" /&amp;gt;
+  &amp;lt;/system.web&amp;gt;  
+  &amp;lt;system.webServer&amp;gt;
+    &amp;lt;httpProtocol&amp;gt;
+    &amp;lt;customHeaders&amp;gt;
+        &amp;lt;remove name="X-Powered-By" /&amp;gt;
+        &amp;lt;add name="Content-Security-Policy" value="default-src 'self'"/&amp;gt;
+        &amp;lt;add name="Referrer-Policy" value="no-referrer" /&amp;gt;
+        &amp;lt;add name="Strict-Transport-Security" value="max-age=31536000"/&amp;gt;
+        &amp;lt;add name="X-Content-Type-Options" value="nosniff" /&amp;gt;
+        &amp;lt;add name="X-Frame-Options" value="SAMEORIGIN" /&amp;gt;
+        &amp;lt;add name="X-XSS-Protection" value="1; mode=block" /&amp;gt;
+      &amp;lt;/customHeaders&amp;gt;
+    &amp;lt;/httpProtocol&amp;gt;
+    &amp;lt;rewrite&amp;gt;
+      &amp;lt;!-- Requires IIS UrlRewrite module to be installed --&amp;gt;
+      &amp;lt;outboundRules&amp;gt;
+        &amp;lt;rule name="Clear Server header"&amp;gt;
+          &amp;lt;match serverVariable="RESPONSE_Server" pattern=".+" /&amp;gt;
+          &amp;lt;action type="Rewrite" value="" /&amp;gt;
+        &amp;lt;/rule&amp;gt;
+      &amp;lt;/outboundRules&amp;gt;   
+    &amp;lt;/rewrite&amp;gt;   
+  &amp;lt;/system.webServer&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Setting headers per page&lt;/h2&gt;
+&lt;p&gt;The &lt;code&gt;meta&lt;/code&gt; tag &lt;code&gt;http-equiv&lt;/code&gt; attribute is an example of setting &lt;code&gt;Content-Security-Policy&lt;/code&gt; on a &lt;strong&gt;per-page&lt;/strong&gt; basis, rather than per-request.&lt;/p&gt;
+&lt;p&gt;Note: If security-policies are already set in an HTTP header, anything set in a &lt;code&gt;meta&lt;/code&gt; tag &lt;em&gt;can only further restrict &lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;This example only allows content from certain external sources:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;meta http-equiv="Content-Security-Policy"
+          content="script-src 'self' https://www.google-analytics.com; object-src 'none'"&amp;gt;
+&amp;lt;/head&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Setting headers in Code&lt;/h2&gt;
+&lt;p&gt;An example from &lt;a href="https://github.com/IdentityServer/IdentityServer4/blob/dev/src/Host/Quickstart/SecurityHeadersAttribute.cs"&gt;IdentityServer4&lt;/a&gt; of how to use a custom Attribute on a Controller to set the headers:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;[SecurityHeaders]
+public class AccountController : Controller
+{
+    // etc
+}
+ 
+public class SecurityHeadersAttribute : ActionFilterAttribute
+{
+    public override void OnResultExecuting(ResultExecutingContext context)
+    {
+        var result = context.Result;
+        if (result is ViewResult)
+        {
+            if (!context.HttpContext.Response.Headers.ContainsKey("X-Content-Type-Options"))
+            {
+                context.HttpContext.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+            }
+            if (!context.HttpContext.Response.Headers.ContainsKey("X-Frame-Options"))
+            {
+                context.HttpContext.Response.Headers.Add("X-Frame-Options", "SAMEORIGIN");
+            }
+ 
+            var csp = "default-src 'self';";
+            // an example if you need client images to be displayed from twitter
+            //var csp = "default-src 'self'; img-src 'self' https://pbs.twimg.com";
+                 
+            // once for standards compliant browsers
+            if (!context.HttpContext.Response.Headers.ContainsKey("Content-Security-Policy"))
+            {
+                context.HttpContext.Response.Headers.Add("Content-Security-Policy", csp);
+            }
+            // and once again for IE
+            if (!context.HttpContext.Response.Headers.ContainsKey("X-Content-Security-Policy"))
+            {
+                context.HttpContext.Response.Headers.Add("X-Content-Security-Policy", csp);
+            }
+        }
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Header Reference&lt;/h2&gt;
+&lt;h3&gt;Content-Security-Policy&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy"&gt;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Default value: &lt;code&gt;default-src 'self'&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Notes:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;If multiple security-policies are set, subsequent policies &lt;em&gt;can only further restrict &lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;This policy can also be set instead on a per-page basis in &lt;code&gt;meta&lt;/code&gt; tags (see below)&lt;/li&gt;
+&lt;li&gt;Policy violations &lt;em&gt;should&lt;/em&gt; be reported to a CSP endpoint, so we have visibility of attacks (but we don't show that here)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;Setting in &lt;code&gt;web.config&lt;/code&gt;&lt;/h4&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;system.webServer&amp;gt;
+  &amp;lt;httpProtocol&amp;gt;
+    &amp;lt;customHeaders&amp;gt;         
+      &amp;lt;add name="Content-Security-Policy" value="default-src 'self'"/&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;Setting per page&lt;/h4&gt;
+&lt;p&gt;The &lt;code&gt;meta&lt;/code&gt; tag &lt;code&gt;http-equiv&lt;/code&gt; attribute allows &lt;code&gt;Content-Security-Policy&lt;/code&gt; to be specified on a &lt;strong&gt;per-page&lt;/strong&gt; basis, rather than per-request.&lt;/p&gt;
+&lt;p&gt;Note: If security-policies are also set in an HTTP header, anything set in a &lt;code&gt;meta&lt;/code&gt; tag &lt;em&gt;can only further restrict &lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;This example uses this instead of an HTTP header to apply specific exceptions:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html&amp;gt;
+&amp;lt;head&amp;gt;
+    &amp;lt;meta http-equiv="Content-Security-Policy"
+          content="script-src 'self' https://www.google-analytics.com; object-src 'none'"&amp;gt;
+&amp;lt;/head&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Referrer-Policy&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy"&gt;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Default value: &lt;code&gt;no-referrer&lt;/code&gt;&lt;/p&gt;
+&lt;h3&gt;HTTP Strict-Transport-Security (HSTS)&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security"&gt;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Default value: &lt;code&gt;max-age=31536000; includeSubDomains&lt;/code&gt;&lt;/p&gt;
+&lt;h4&gt;Setting in &lt;code&gt;web.config&lt;/code&gt;&lt;/h4&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;system.webServer&amp;gt;
+  &amp;lt;httpProtocol&amp;gt;
+    &amp;lt;customHeaders&amp;gt;         
+      &amp;lt;add name="Strict-Transport-Security" value="max-age=31536000"/&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;Setting in &lt;code&gt;web.config&lt;/code&gt; with &lt;code&gt;UrlRewrite&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;I've also seen this header added using &lt;code&gt;UrlRewrite&lt;/code&gt;.&amp;nbsp; This only adds the header, when HTTPS is in use.&amp;nbsp; But if you send the header when using HTTP the browser just ignores it, so I prefer the simpler syntax above:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;rewrite&amp;gt;
+  &amp;lt;outboundRules&amp;gt;
+    &amp;lt;rule name="Add_HSTS_Header" preCondition="USING_HTTPS" patternSyntax="Wildcard"&amp;gt;
+      &amp;lt;match serverVariable="RESPONSE_Strict-Transport-Security" pattern="*" /&amp;gt;
+      &amp;lt;action type="Rewrite" value="max-age=31536000" /&amp;gt;
+    &amp;lt;/rule&amp;gt;
+    &amp;lt;preConditions&amp;gt;
+      &amp;lt;preCondition name="USING_HTTPS"&amp;gt;
+        &amp;lt;add input="{HTTPS}" pattern="^ON$" /&amp;gt;
+      &amp;lt;/preCondition&amp;gt;
+    &amp;lt;/preConditions&amp;gt;
+  &amp;lt;/outboundRules&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;X-Content-Type-Options&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options"&gt;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Default value: &lt;code&gt;nosniff&lt;/code&gt;&lt;/p&gt;
+&lt;h4&gt;Setting in &lt;code&gt;web.config&lt;/code&gt;&lt;/h4&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;system.webServer&amp;gt;
+  &amp;lt;httpProtocol&amp;gt;
+    &amp;lt;customHeaders&amp;gt;         
+      &amp;lt;add name="X-Content-Type-Options" value="nosniff"/&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;X-Frame-Options&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options"&gt;https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Default value: &lt;code&gt;SAMEORIGIN&lt;/code&gt;&lt;/p&gt;
+&lt;h4&gt;Setting in &lt;code&gt;web.config&lt;/code&gt;&lt;/h4&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;system.webServer&amp;gt;
+  &amp;lt;httpProtocol&amp;gt;
+    &amp;lt;customHeaders&amp;gt;         
+      &amp;lt;add name="X-Frame-Options" value="SAMEORIGIN"/&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;Ensuring header is set&lt;/h4&gt;
+&lt;p&gt;To fix-up a website where some pages already added the header, and some didn&amp;rsquo;t, I used the following code in &lt;code&gt;global.asax&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;protected void Application_BeginRequest()
+{
+    HttpContext.Current.Response.AddOnSendingHeaders(httpContext =&amp;gt;
+    {
+        if (isHtmlResponse() &amp;amp;&amp;amp; hasNoFrameOptionsHeader())
+        {
+            httpContext.Response.AddHeader("x-frame-options", "SAMEORIGIN");
+        }
+
+        bool isHtmlResponse () {
+            var contentTypeValue = httpContext.Response.Headers["content-type"];
+            return contentTypeValue is null ? false : contentTypeValue.ToLower().Contains("text/html");
+        }
+        bool hasNoFrameOptionsHeader () =&amp;gt; httpContext.Response.Headers["x-frame-options"] is null;
+    });            
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Removing HTTP Response Headers&lt;/h2&gt;
+&lt;p&gt;Idea here is not to reveal any information about our infrastructure (which could help an attacker).&lt;/p&gt;
+&lt;h3&gt;Server Header&lt;/h3&gt;
+&lt;p&gt;Added by IIS, eg `server:Microsoft-IIS/10.0`&lt;/p&gt;
+&lt;p&gt;To clear for all requests, we can configure IIS's &lt;code&gt;UrlRewrite&lt;/code&gt; module (which has to be manually installed) in &lt;code&gt;web.config&lt;/code&gt;.&amp;nbsp; This clears the value of the header, to hide the sensitive information:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;rewrite&amp;gt;
+  &amp;lt;outboundRules&amp;gt;
+    &amp;lt;rule name="Clear Server header"&amp;gt;
+      &amp;lt;match serverVariable="RESPONSE_Server" pattern=".+" /&amp;gt;
+      &amp;lt;action type="Rewrite" value="" /&amp;gt;
+    &amp;lt;/rule&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This header can be &lt;em&gt;removed&lt;/em&gt; in code, but would not apply to any requests going direct to static files (eg CSS, images):&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;protected void Application_BeginRequest(object sender, EventArgs e)
+{
+    var application = sender as HttpApplication;
+    if (application != null &amp;amp;&amp;amp; application.Context != null)
+    {
+        application.Context.Response.Headers.Remove("Server");
+    }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: this approach to removing headers in &lt;code&gt;web.config&lt;/code&gt; has no effect:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;!-- DO NOT DO THIS --&amp;gt; 
+&amp;lt;system.webServer&amp;gt;
+    &amp;lt;httpProtocol&amp;gt;
+      &amp;lt;customHeaders&amp;gt;
+        &amp;lt;remove name="Server" /&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;X-AspNet-Version Header&lt;/h3&gt;
+&lt;p&gt;To stop the header being added in the first place, set property in &lt;code&gt;web.config&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;system.web&amp;gt;
+  &amp;lt;httpRuntime enableVersionHeader="false" /&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Or if have to remove later, can use:&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;system.webServer&amp;gt;
+  &amp;lt;httpProtocol&amp;gt;
+    &amp;lt;customHeaders&amp;gt;
+      &amp;lt;remove name="X-AspNet-Version" /&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;X-AspNetMvc-Version Header&lt;/h3&gt;
+&lt;p&gt;Can stop this being added using:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;protected void Application_Start()
+{
+    MvcHandler.DisableMvcResponseHeader = true;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;X-Powered-By Header&lt;/h3&gt;
+&lt;p&gt;To remove:-&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;system.webServer&amp;gt;
+  &amp;lt;httpProtocol&amp;gt;
+    &amp;lt;customHeaders&amp;gt;
+      &amp;lt;remove name="X-Powered-By" /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>.net</category>
+    <category>c#</category>
+    <category>iis</category>
+  </categories>
+  <comments></comments>
+</post>

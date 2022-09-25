@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Do I need Resharper?</title>
+  <slug>do-i-need-resharper</slug>
+  <pubDate>2016-04-25 11:05:38</pubDate>
+  <lastModified>2022-09-25 12:12:11</lastModified>
+  <excerpt>Visual Studio has moved on and Resharper is no longer a prerequisite for efficient C# coding</excerpt>
+  <content>&lt;p&gt;It was once received wisdom that any developer using Visual Studio should use Resharper.&amp;nbsp; But its not so clear-cut today.&amp;nbsp; I&amp;rsquo;ll argue that when using Visual Studio 2015 Update 2, Resharper is no longer a pre-requisite for C# coding, although you may still want it for JavaScript and TypeScript.&lt;/p&gt;
+&lt;h2&gt;Going native&lt;/h2&gt;
+&lt;p&gt;What got me thinking about whether I need Resharper was trying to use it with a Hyper-V virtual machine on my development PC.&lt;/p&gt;
+&lt;p&gt;Resharper changed their licensing in 2015 so you can only have one instance of Resharper running on a physical PC at a time.&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;So if you have Visual Studio running, then connect to a Hyper-V virtual machine on the same hardware which also has Visual Studio running (which I often do to keep environments separate) Resharper disables all but one instance of itself, with an error message starting:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;Another instance of ReSharper with the same License ...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;JetBrains did &lt;a href="https://resharper-support.jetbrains.com/hc/en-us/articles/207242835--Another-instance-of-ReSharper-with-the-same-License-error-message" target="_blank" rel="nofollow noopener"&gt;partially respond to feedback&lt;/a&gt; on this for personal licences, but it is still a problem with commercial licences.&lt;/p&gt;
+&lt;p&gt;So in practice, Resharper keeps disabling itself, which felt like a hint that I should try living without it!&lt;/p&gt;
+&lt;h2&gt;C#&lt;/h2&gt;
+&lt;h3&gt;Native Functionality&lt;/h3&gt;
+&lt;p&gt;The perception of Resharper is that it patches missing functionality and keyboard shortcuts that Visual Studio doesn&amp;rsquo;t have.&lt;/p&gt;
+&lt;p&gt;This may have been the case in the past, but when you uninstall it (or have it disable itself, as above) you suddenly find most of what you were doing via Resharper is now available natively in Visual Studio too.&lt;/p&gt;
+&lt;p&gt;And in fact Resharper even sometimes hides native functionality that is arguably better.&amp;nbsp; For example, both Resharper and Visual Studio use the chord &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;R&lt;/kbd&gt;, &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;R&lt;/kbd&gt; to rename a method.&amp;nbsp; But in Visual Studio you get a nice preview window of the changes which you don&amp;rsquo;t get with Resharper.&lt;/p&gt;
+&lt;p&gt;Note: after uninstalling Resharper you may need to reset your keyboard mappings to re-enable Visual Studio&amp;rsquo;s defaults:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;Tools =&amp;gt; Options =&amp;gt; Environment =&amp;gt; Keyboard =&amp;gt; Reset&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;Refactoring Suggestions&lt;/h3&gt;
+&lt;p&gt;Resharper often gives you hints about possible refactorings.&amp;nbsp; A common example being turning a &lt;code&gt;foreach&lt;/code&gt; loop into LINQ.&lt;/p&gt;
+&lt;p&gt;But now that Visual Studio uses the Roslyn compiler a whole range of Analysers for refactorings can be included with a project.&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;A couple of these are included already (eg to give hints about where C# 6 functionality can be used) and more are undoubtedly on the way.&lt;/p&gt;
+&lt;p&gt;There is also a free refactoring extension using these Analysers &lt;a href="https://visualstudiogallery.msdn.microsoft.com/68c1575b-e0bf-420d-a94b-1b0f4bcdcbcc" target="_blank" rel="nofollow noopener"&gt;Refactoring Essentials for Visual Studio&lt;/a&gt;.&lt;/p&gt;
+&lt;h3&gt;What&amp;rsquo;s Missing?&lt;/h3&gt;
+&lt;p&gt;There are a couple of things I used every day with&amp;nbsp; Resharper that I can&amp;rsquo;t find a native equivalent for.&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;For example Resharper&amp;rsquo;s &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;R&lt;/kbd&gt;, &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;F&lt;/kbd&gt; to take a constructor parameter, add a private, read-only backing field and set the field to the parameter&amp;rsquo;s value in the constructor.&lt;/p&gt;
+&lt;p&gt;There is a similar refactoring for this in the Refactoring Essentials add-in, but at the moment the refactoring is not configurable for your coding-style preferences, so it results in output like:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;readonly IEnumerable&amp;lt;int&amp;gt; items;
+
+public MyClass(IEnumerable&amp;lt;int&amp;gt; items)
+{
+    this.items = items;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Whereas Resharper (along with my personal preference) would have resulted in:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;private readonly IEnumerable&amp;lt;int&amp;gt; _items;
+
+public MyClass(IEnumerable&amp;lt;int&amp;gt; items)
+{
+    _items = items;
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;There is an &lt;a href="https://github.com/icsharpcode/RefactoringEssentials/issues/179" target="_blank" rel="noopener"&gt;open issue&lt;/a&gt; on the Refactoring Essentials to introduce some coding-style configuration options.&lt;/p&gt;
+&lt;p&gt;Resharper also have their own &lt;a href="https://www.jetbrains.com/resharper/documentation/comparisonMatrix_R10_vs2015.html" target="_blank" rel="nofollow noopener"&gt;comparison chart&lt;/a&gt; with Visual Studio 2015.&lt;/p&gt;
+&lt;h3&gt;Useful Links&lt;/h3&gt;
+&lt;p&gt;MSDN&lt;/p&gt;
+&lt;p&gt;- &lt;a href="https://msdn.microsoft.com/en-us/library/da5kh0wa.aspx" target="_blank" rel="nofollow noopener"&gt;Default Keyboard Shortcuts&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;- &lt;a href="https://msdn.microsoft.com/en-us/library/dn320181.aspx" target="_blank" rel="nofollow noopener"&gt;Tips and Tricks for Visual Studio&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;- &lt;a href="https://msdn.microsoft.com/en-us/library/jj153218.aspx" target="_blank" rel="nofollow noopener"&gt;Productivity Tips&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Stackoverflow&lt;/p&gt;
+&lt;p&gt;- &lt;a href="http://stackoverflow.com/questions/98606/favorite-visual-studio-keyboard-shortcuts" target="_blank" rel="nofollow noopener"&gt;Favorite keyboard shortcuts&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;My Favourites&lt;/h3&gt;
+&lt;p&gt;Below are some of the native commands I&amp;rsquo;ve found particularly useful myself.&lt;/p&gt;
+&lt;table class="table table-striped"&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Key&lt;/th&gt;
+&lt;th&gt;Command&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;K&lt;/kbd&gt;, &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;C&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Comment selection&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;K&lt;/kbd&gt;, &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;U&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Uncomment selection&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;F12&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Go to definition&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Shift&lt;/kbd&gt;+&lt;kbd&gt;F12&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Find all references&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;F12&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Go to declaration&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Alt&lt;/kbd&gt;+&lt;kbd&gt;F12&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Peek definition&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;F&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Find&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;Shift&lt;/kbd&gt;+&lt;kbd&gt;F&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Find in files&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;C&lt;/kbd&gt;, &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;V&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Duplicate the line the cursor is on&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;L&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Delete the line the cursor is on&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;Shift&lt;/kbd&gt;+&lt;kbd&gt;V&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Paste/cycle through clipboard contents&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;K&lt;/kbd&gt;, &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;K&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Toggle bookmark&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;K&lt;/kbd&gt;, &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;N&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Next bookmark&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;K&lt;/kbd&gt;, &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;P&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Previous bookmark&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;K&lt;/kbd&gt;, &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;W&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;View bookmark window&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;-&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Navigate forward&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;Shift&lt;/kbd&gt;+&lt;kbd&gt;-&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Navigate backward&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;,&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Find &amp;amp; navigate to an item (like Resharper's find type)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;;&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Find matches and show in Solution Explorer&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;td&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;]&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Find matching brace for ( { [&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;Shift&lt;/kbd&gt;+&lt;kbd&gt;]&lt;/kbd&gt;&lt;/td&gt;
+&lt;td&gt;Find matching brace and select all between&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;JavaScript &amp;amp; TypeScript&lt;/h2&gt;
+&lt;p&gt;Somewhat to my surprise, Resharper still has a lot to offer when working with JavaScript and TypeScript in Visual Studio.&lt;/p&gt;
+&lt;p&gt;Visual Studio won&amp;rsquo;t even help you rename a variable within a function.&amp;nbsp; And if you are using TypeScript, there are no code-snippets (so you have to manually type out your &amp;ldquo;for&amp;rdquo; loops in full, for example).&lt;/p&gt;
+&lt;p&gt;However if instead of Visual Studio you use the more front-end targeted &lt;strong&gt;Visual Studio Code&lt;/strong&gt;, you do get these essential refactorings and code-snippets.&lt;/p&gt;
+&lt;h2&gt;Visual Studio Code&lt;/h2&gt;
+&lt;p&gt;This stand-alone editor is meant for front-end coding.&amp;nbsp; I&amp;rsquo;ve yet to use it on a live project, but a quick explore shows it has JavaScript refactorings and TypeScript code-snippets that are missing in Visual Studio.&lt;/p&gt;
+&lt;p&gt;So if Visual Studio with Resharper is not available, Visual Studio Code definitely looks more useful than just working in Visual Studio.&lt;/p&gt;
+&lt;p&gt;One interesting aside is that Visual Studio Code seems to share many of the keyboard shortcuts with Visual Studio, but as a consequence of it being a newer product has been able to add a few new ones (see &lt;a href="https://code.visualstudio.com/Docs/customization/keybindings" target="_blank" rel="nofollow noopener"&gt;Key Bindings for Visual Studio Code&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;For example there is a &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;/&lt;/kbd&gt; for toggling a line comment and &lt;kbd&gt;Shift&lt;/kbd&gt;+&lt;kbd&gt;Alt&lt;/kbd&gt;+&lt;kbd&gt;A&lt;/kbd&gt; for toggling a block comment.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories></categories>
+  <comments></comments>
+</post>

@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Improve Kentico's first page load time</title>
+  <slug>improve-kenticos-first-page-load-time</slug>
+  <pubDate>2011-05-15 16:30:00</pubDate>
+  <lastModified>2022-09-25 12:13:00</lastModified>
+  <excerpt>Ways to keep a web application alive to avoid startup-delays.</excerpt>
+  <content>&lt;p&gt;A fast, first-page load time for a web application (&amp;amp; in particular a Kentico CMS installation) is disproportionately dependent on the application already being running, and any slow to load items being pre-cached.&amp;nbsp; This post describes how using a monitoring service like Pingdom can help with this (&amp;amp; usefully also notify you when there are problems with the site).&lt;/p&gt;
+&lt;h2&gt;Factors Affecting First-Page Load Time&lt;/h2&gt;
+&lt;p&gt;When an ASP.NET application is running in a shared application pool (typical for most inexpensive website hosting) your application may be unloaded if it hasn't had any traffic for a while.&amp;nbsp; When the next request comes in, the application has to be reloaded before the page request is processed.&amp;nbsp; This can take an appreciable amount of time.&amp;nbsp; However, if the application is already running, this potential delay is eliminated (this is rather like the difference between creating a new Word document with or without Word already being running).&lt;/p&gt;
+&lt;p&gt;Data stored in a memory cache is available in a fraction of the time it would take to get the same data from disk or (worse) a database.&amp;nbsp; So it makes sense to have any frequently required, slow to load content already in cache, ready for the next person who requests it.&amp;nbsp; Unfortunately the cache can be cleared, fully or partially, by ASP.NET.&amp;nbsp; For example, if the application restarts (which may happen at any time if running in a shared application pool) the cache will be emptied.&amp;nbsp; And if system memory is running low, items may be ejected from the cache so the memory can be used elsewhere.&amp;nbsp; This is of particular significance for Kentico CMS, which makes extensive use of cached data (otherwise requiring a lot of database activity to process &amp;amp; build pages).&lt;/p&gt;
+&lt;p&gt;Many other factors can impact the page-load time (for example the size &amp;amp; number of requests required to get the page to the browser) but here I am just considering the most signifcant issues which are unique to the time it takes to load the first page a user requests.&lt;/p&gt;
+&lt;h2&gt;Regularly poll your site to Keep It Alive&lt;/h2&gt;
+&lt;p&gt;One of the simplest solutions to address the two issues above is to regularly request pages from your website.&lt;/p&gt;
+&lt;p&gt;If a request is made to your site every 5 minutes, then it is unlikely that the application will be unloaded (&amp;amp; if it has been your request will reload it) and if any items are missing from the cache they will be added back in.&lt;/p&gt;
+&lt;p&gt;For Kentico CMS this can make a huge difference.&amp;nbsp; What Kentico calls "Page Info" (essentially everything that is needed to route a request &amp;amp; know where to find the page content) must always be cached for a decent response time.&amp;nbsp; So regularly requesting &lt;em&gt;any &lt;/em&gt;page will get this common Page Info back in the cache if it is missing.&lt;/p&gt;
+&lt;p&gt;Most Kentico sites have pages that will benefit from their content being cached too.&amp;nbsp; But since the content will only be cached for a particular page when that page is requested it may be worth including multiple pages in your polling.&amp;nbsp; For example, you would almost certainly want to request the home page regularly to ensure its content is cached, but if you have other pages that are slow to load from the database that you want to always be delivered quickly from cache, you could include them too.&lt;/p&gt;
+&lt;h2&gt;What do I need to do?&lt;/h2&gt;
+&lt;p&gt;The first thing to check is the frequency of all visits to your site.&amp;nbsp; If a page request is coming in to your home page at least once every 5 minutes throughout the day, then your site will probably already be fine.&lt;/p&gt;
+&lt;p&gt;If less than this (particularly out of office hours) then the site may benefit from being regularly polled.&lt;/p&gt;
+&lt;h3&gt;Using Pingdom&lt;/h3&gt;
+&lt;p&gt;&lt;a href="http://www.pingdom.com/" target="_blank" rel="noopener"&gt;Pingdom&lt;/a&gt; is actually a monitoring service which in itself gives you very useful information about the uptime &amp;amp; page response times of your site (&amp;amp; will alert you to any problems).&amp;nbsp; However, it acheives this by regularly requesting one or more pages from your website (for example, every 5 minutes).&amp;nbsp; So it has a useful side-effect for us that it will keep the application alive, and keep the content cached for the page(s) being requested.&lt;/p&gt;
+&lt;p&gt;At the time of writing, Pingdom is free for a single web site, but paid for if you want to monitor multiple web sites or web pages.&lt;/p&gt;
+&lt;p&gt;It only takes a minute or two to sign up for an account and specify the page you want to monitor.&amp;nbsp; Polling starts almost immediately, and thereafter will keep your site alive ready for visitors.&lt;/p&gt;
+&lt;h3&gt;Using RSS&lt;/h3&gt;
+&lt;p&gt;If your Kentico site includes an RSS page (whether public or just created for this purpose) then you can set up an RSS reader (Microsoft Outlook, for example) to check the page every 5 or 10 minutes.&amp;nbsp; This achieves the goal of keeping the application live, but doesn't help with caching content for particular pages.&lt;/p&gt;
+&lt;h3&gt;Kentico Caching Configuation&lt;/h3&gt;
+&lt;p&gt;I've been assuming throughout this post that Kentico users have caching optimally configured.&amp;nbsp; If you are not sure please take a look at &lt;a href="http://devnet.kentico.com/Blogs/Martin-Hejtmanek/April-2009/Deep-Dive---Kentico-CMS-Caching.aspx" target="_blank" rel="noopener"&gt;Martin Hejtmanek (kentico's CTO) deep-dive blog post &lt;/a&gt;on the subject.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories></categories>
+  <comments>
+    <comment isAdmin="false" id="ab01d8a2-0128-4dd2-9e7b-4c8b0eb5f7b4">
+      <author>Helena</author>
+      <email>ghelenka@gmail.com</email>
+      <date>2011-08-15 11:39:58</date>
+      <content>Hello Steve,&lt;br /&gt;&lt;br /&gt;I am using Pingdom (it should ping my site every 5 minutes). It reports that the site is OK. However, if I access the site after a long time, it takes a long time to load and Event log reports an application start. I have a Free version of Pingdom. Does it make any difference? It seems it does not work as you have described.&lt;br /&gt;&lt;br /&gt;Thanks,&lt;br /&gt;Helena</content>
+    </comment>
+    <comment isAdmin="true" id="4259200f-ec01-4ab3-906d-ae5264a804df">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2011-08-18 09:53:55</date>
+      <content>Hi Helena&lt;br /&gt;&lt;br /&gt;If Pingdom is receiving a page from Kentico, then the application must be running at that point. I&amp;#39;ve used the free version of Pingdom, and the functionality seems just the same as the paid for version.&lt;br /&gt;&lt;br /&gt;If the Pingdom reports are showing the page load time as being normal (a second or two) then it looks like something else is triggering the restart. Suggest you contact Kentico support (or use their forums) if that looks likely.&lt;br /&gt;&lt;br /&gt;Steve</content>
+    </comment>
+    <comment isAdmin="false" id="71e6cf89-43b4-4293-9bbc-d8e6b433d626">
+      <author>Brenden</author>
+      <email>bkehren@gmail.com</email>
+      <date>2011-12-06 14:36:09</date>
+      <content>Steve, great article! Question, would the Keep Alive webpart do the same thing as what you describe with Pingdom? I&amp;#39;m using v6.0 and have included that in my master page hoping for the best but haven&amp;#39;t published the whole site live yet.</content>
+    </comment>
+    <comment isAdmin="true" id="fdd8a0fe-e57a-4c4d-a31f-b850d9d44948">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2011-12-06 15:16:11</date>
+      <content>Hi Brenden&lt;br /&gt;&lt;br /&gt;I&amp;#39;m not sure the the &amp;quot;Keep alive&amp;quot; web part will achieve the same. The documentation says its purpose is to ensure the session for the current user doesn&amp;#39;t time out (but you can set a long timeout for session in the web.config file anyway, making this redundant in some circumstances). But if the application shuts down, any session stored in memory (the default setting) is lost.&lt;br /&gt;&lt;br /&gt;I&amp;#39;ve not looked at the Keep Alive webpart, so don&amp;#39;t know what it will do if the session is lost like this.&lt;br /&gt;&lt;br /&gt;I also wouldn&amp;#39;t recommend adding it to the Master Page - this means every user of the site will be pinging requests to keep their session alive unnecessarily. Just use it on pages where you want to extend session beyond the value set in web.config.&lt;br /&gt;&lt;br /&gt;Hope that helps,&lt;br /&gt;&lt;br /&gt;Steve</content>
+    </comment>
+  </comments>
+</post>

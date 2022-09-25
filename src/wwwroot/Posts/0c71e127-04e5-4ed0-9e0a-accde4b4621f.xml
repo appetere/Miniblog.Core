@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Cross-site posting of form data to an external URL in ASP.NET</title>
+  <slug>cross-site-posting-of-form-data-to-an-external-url</slug>
+  <pubDate>2010-09-07 09:46:12</pubDate>
+  <lastModified>2022-09-25 12:13:08</lastModified>
+  <excerpt>How to post data in a form on an ASP.NET page to another web-site.</excerpt>
+  <content>&lt;p&gt;If you have data in a form in an ASP.NET page that you want to post to another web site, this can be problematic.&amp;nbsp; ASP.NET is designed so that only one form (with &lt;code&gt;runat="server"&lt;/code&gt; attribute) is allowed on a page, and when you do something like click on a button, the page will post back to itself, so that the data in the form can be processed.&lt;/p&gt;
+&lt;p&gt;But say you have a simple ecommerce site and want to post the data in the form to a payment provider (eg PayPal, DataTrans or Secure Trading) to request a payment, how can you do that?&lt;/p&gt;
+&lt;h2&gt;Using the PostBackUrl Property&lt;/h2&gt;
+&lt;p&gt;Fortunately ASP.NET buttons have a property called "postbackurl":&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;asp:button id="payNowButton" runat="server"
+  text="Pay Now"
+  postbackurl="https://securetrading.net/authorize/form.cgi" &amp;gt;
+&amp;lt;/asp:button&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You simply set this to the external page you want to post too, and all the data in the form will be redirected there, when the button is clicked on.&lt;/p&gt;
+&lt;h2&gt;Creating the Form data&lt;/h2&gt;
+&lt;p&gt;The form data to be posted has to be contained in &lt;code&gt;&amp;lt;input&amp;gt;&lt;/code&gt; fields, visible or hidden.&amp;nbsp; The name of each field has to match the parameter name that the payment provider specifies.&lt;/p&gt;
+&lt;p&gt;One technique I like for preparing the parameters to be sent to the payment provider is to populate a generic &lt;code&gt;IDictionary&amp;lt;string, string&amp;gt;&lt;/code&gt; with the names &amp;amp; values of the parameters to be sent (eg currency, your account identifier, order id, price etc).&amp;nbsp; Then in the page, I make this Dictionary the datasource for a repeater which creates a separate hidden &lt;code&gt;&amp;lt;input&amp;gt;&lt;/code&gt; field for each parameter:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;paymentParametersRepeater.DataSource 
+  = SecureTradingPaymentProvider.GetPaymentParameters(order); 
+paymentParametersRepeater.DataBind();&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;pre class="language-markup"&gt;&lt;code&gt;&amp;lt;asp:Repeater ID="paymentParametersRepeater" runat="server" 
+  EnableViewState="False"&amp;gt;
+  &amp;lt;ItemTemplate&amp;gt;
+    &amp;lt;input id="Hidden1" type="hidden"
+      name='&amp;lt;%# Eval("key") %&amp;gt;'
+     value='&amp;lt;%# Eval("value") %&amp;gt;' /&amp;gt;
+  &amp;lt;/ItemTemplate&amp;gt;
+&amp;lt;/asp:Repeater&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In this example I've put the code that populates the Dictionary into a separate payment provider class (not shown here), so all code that is unique to the particular payment company is kept in one place.&lt;/p&gt;
+&lt;h2&gt;Sending data in the QueryString&lt;/h2&gt;
+&lt;p&gt;Many payment providers also allow you to send the payment parameters in the QueryString, using a GET request:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;http://www.paymentprovidersurl/?amount=125&amp;amp;id=myIdCode&amp;amp;currency=GBP&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This may be simpler to construct, but leaves the important variables temptingly visible for someone to edit (perhaps to reduce the price).&amp;nbsp; For that reason I favour posting the data cross-site so at least more casual hacking is deterred.&lt;/p&gt;
+&lt;h2&gt;Other Approaches&lt;/h2&gt;
+&lt;p&gt;If the data to be posted cannot be added to the page, it is possible to create an HttpWebRequest programmatically, POST&amp;nbsp; the data to an external site, then stream the response received back to your user's browser.&lt;/p&gt;
+&lt;p&gt;I found this blog entry describing how to tackle the problem this way:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://geekswithblogs.net/rakker/archive/2006/04/21/76044.aspx"&gt;http://geekswithblogs.net/rakker/archive/2006/04/21/76044.aspx&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Hope this is useful.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories></categories>
+  <comments></comments>
+</post>

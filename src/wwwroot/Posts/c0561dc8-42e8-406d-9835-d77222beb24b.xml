@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>How to use C# Interactive</title>
+  <slug>how-to-use-csharp-interactive</slug>
+  <pubDate>2019-12-26 18:20:39</pubDate>
+  <lastModified>2022-09-25 12:11:41</lastModified>
+  <excerpt>Introduction to using C# Interactive to run C# line-by-line or from scripts.</excerpt>
+  <content>&lt;p&gt;C# Interactive is a handy tool for quickly running a piece of code, either line by line or from a script.&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;C# Interactive window&lt;/strong&gt; in Visual Studio is opened from:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;View =&amp;gt; Other Windows =&amp;gt; C# Interactive&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Type in one block of C# at a time, terminating with a &lt;code&gt;;&lt;/code&gt; when the block is complete, eg:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://localhost:8040/posts/files/a3466acd-2b52-435b-906b-bd2435ffac24.png"&gt;&lt;img style="display: inline; background-image: none;" title="A" src="http://localhost:8040/posts/files/e260b64e-994c-4d0c-9fb4-0d87c28f4b6b.png" alt="A" width="304" height="158" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The same code can also be executed from the command line, without running Visual Studio.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Open the &lt;strong&gt;Developer Command Prompt for Visual Studio&lt;/strong&gt; (which will ensure required paths are set-up for you).&lt;/li&gt;
+&lt;li&gt;Start the C# Interactive Compiler, with the &lt;code&gt;csi&lt;/code&gt; command.&lt;/li&gt;
+&lt;li&gt;Enter code as for the C# Interactive window, above:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;a href="http://localhost:8040/posts/files/38435577-ad51-49dc-90cd-d1a225be3b6c.png"&gt;&lt;img style="display: inline; background-image: none;" title="B" src="http://localhost:8040/posts/files/711bb1c1-ff89-4a1d-a64c-b2502a1a0aa7.png" alt="B" width="454" height="182" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;To exit &lt;code&gt;csi&lt;/code&gt; type &lt;code&gt;CTRL+C&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;The code can also be saved in a script, eg &lt;code&gt;demo.csx&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;using System;
+
+var items = new[] { 'A', 'B', 'C' };
+
+foreach (var item in items)
+{
+    Console.Write(item);
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This can be run in the C# Interactive window using the &lt;code&gt;#load&lt;/code&gt; command, eg:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;#load "C:\Temp\Demo.csx"&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;which will immediately run the script:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://localhost:8040/posts/files/945d82a7-cd8d-4eb2-81bc-26b8e86c718a.png"&gt;&lt;img style="display: inline; background-image: none;" title="C" src="http://localhost:8040/posts/files/d7594bcd-f70b-4b0c-9a0c-df9c6fab5e19.png" alt="C" width="244" height="93" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Note that the C# Interactive window uses a search path starting at &lt;code&gt;C:\Users\name&lt;/code&gt; whereas you might expect it to start from the root of your project.&lt;/p&gt;
+&lt;p&gt;You can change this by running:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;Environment.CurrentDirectory = "C:\your-path"&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is slightly easier from the Developer Command Prompt, where you can just change the path to the root of your project before starting &lt;code&gt;csi&lt;/code&gt;, eg:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;cd c:\your-path&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To reference assemblies use:&lt;/p&gt;
+&lt;pre class="language-plain"&gt;&lt;code&gt;#r "path/MyAssembly.dll"&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Whether the path is relative or absolute will depend on the context, as for &lt;code&gt;#load&lt;/code&gt;, above.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;#r&lt;/code&gt; command can be used when working line-by-line, or added to the top of a &lt;code&gt;.csx&lt;/code&gt; script.&lt;/p&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;References&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://github.com/dotnet/roslyn/wiki/Interactive-Window"&gt;https://github.com/dotnet/roslyn/wiki/Interactive-Window&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://github.com/dotnet/roslyn/wiki/C%23-Interactive-Walkthrough"&gt;https://github.com/dotnet/roslyn/wiki/C%23-Interactive-Walkthrough&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://docs.microsoft.com/en-us/archive/msdn-magazine/2016/january/essential-net-csharp-scripting"&gt;https://docs.microsoft.com/en-us/archive/msdn-magazine/2016/january/essential-net-csharp-scripting&lt;/a&gt;&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>c#</category>
+    <category>visual studio</category>
+  </categories>
+  <comments></comments>
+</post>

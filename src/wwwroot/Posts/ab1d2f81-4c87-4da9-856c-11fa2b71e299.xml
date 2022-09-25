@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Passing multiple Include statements into a Repository</title>
+  <slug>passing-include-statements-into-a-repository</slug>
+  <pubDate>2012-05-05 16:03:14</pubDate>
+  <lastModified>2022-09-25 12:12:37</lastModified>
+  <excerpt>How a calling method can tell an Entity Framework Code-First Repository to eager-load a variable number of related entities and collections.</excerpt>
+  <content>&lt;p&gt;How a calling method can tell an Entity Framework Code-First Repository to eager-load a variable number of related entities and collections.&lt;/p&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;A Repository acts as the bridge between a database and entities that you can use in code.&amp;nbsp; When you ask a Repository to save an entity, this is normally delegated to an ORM such as Entity Framework.&amp;nbsp; If the entity is something like an Order and there are any related entities (in a changed or added state) these will be saved at the same time:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public class Order
+{
+    public int OrderId { get; set; }
+    public Customer Customer { get; set; }
+    public decimal Value { get; set; }
+    public IList&amp;lt;Item&amp;gt; LineItems { get; set; }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;A question arises when retrieving the same Order from the database (often referred to as "rehydrating").&amp;nbsp; Do I just retrieve the Order entity (which in this example is an OrderId and Value) or do I retrieve the related entity, Customer, and the related collection, LineItems?&lt;/p&gt;
+&lt;p&gt;If you are taking a Domain Driven Design approach, you may have clearly defined Aggregates, in which case you may have a rule that the whole Order Aggregate has to be retrieved at once, every time.&lt;/p&gt;
+&lt;p&gt;Or you may be able to rely on lazy-loading, such that any related entities are loaded only as they are needed by your code.&lt;/p&gt;
+&lt;p&gt;But if you need to eager-load entities to avoid multiple trips to the database when iterating over collections and want to control specifically which related entities and collections are retrieved, you may want the calling method to tell the Repository which to include in the re-hydrated object graph.&lt;/p&gt;
+&lt;p&gt;This post explains one method for doing this.&lt;/p&gt;
+&lt;h2&gt;Repository Methods&lt;/h2&gt;
+&lt;p&gt;Within the repository, this is the long-hand pattern for applying a variable number of Include statements to a DbSet from an Entity Framework Code First DbContext:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public IQueryable&amp;lt;Order&amp;gt; GetAll(
+  params Expression&amp;lt;Func&amp;lt;CandidateTest, object&amp;gt;&amp;gt;[] includeExpressions)
+{ 
+  IQueryable&amp;lt;Order&amp;gt; set = _context.Orders;
+
+  foreach (var includeExpression in includeExpressions)
+  {
+    set = set.Include(includeExpression);
+  }
+  return set;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The Include statements are specified as lambda expressions (see below) and by using the "params" keyword the method will accept as many as you provide.&lt;/p&gt;
+&lt;p&gt;The Fluent API allows you to chain as many Include statements as you require, so the code just loops through, doing this.&lt;/p&gt;
+&lt;p&gt;So to call this method, specifying we want the Customer and LineItems included, we use code such as:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;var orders = _ordersRepository.GetAll(o=&amp;gt;o.Customer, o=&amp;gt;o.LineItems);&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Of course, you can still chain other LINQ operations onto the end of the statement, such as "Where", "Select", etc as the Repository is still returning an IQueryable.&lt;/p&gt;
+&lt;h2&gt;Resharper&amp;rsquo;s Version&lt;/h2&gt;
+&lt;p&gt;Resharper suggests refactoring code above into a single statement using the LINQ Aggregate method.&lt;/p&gt;
+&lt;p&gt;It&amp;rsquo;s down to personal opinion which version you (and others visiting your code in the future) find easier to understand:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public IQueryable&amp;lt;Order&amp;gt; GetAll(
+  params Expression&amp;lt;Func&amp;lt;Order, object&amp;gt;&amp;gt;[] includeExpressions)
+{
+  return includeExpressions
+    .Aggregate&amp;lt;Expression&amp;lt;Func&amp;lt;Order, object&amp;gt;&amp;gt;, IQueryable&amp;lt;Order&amp;gt;&amp;gt;
+     (_context.Orders, (current, expression) =&amp;gt; current.Include(expression));
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And similarly, if we want a "GetById" method, this can be implemented as:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;public Order GetById(
+  int id, 
+  params Expression&amp;lt;Func&amp;lt;Order,object&amp;gt;&amp;gt;[] includeExpressions)
+{
+  if (includeExpressions.Any())
+  {
+    var set = includeExpressions
+      .Aggregate&amp;lt;Expression&amp;lt;Func&amp;lt;Order, object&amp;gt;&amp;gt;, IQueryable&amp;lt;Order&amp;gt;&amp;gt;
+        (_context.Orders, (current, expression) =&amp;gt; current.Include(expression));
+
+    return set.SingleOrDefault(s =&amp;gt; s.Id == id);
+  }
+
+  return _context.Orders.Find(id);
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If no include expressions are specified, we just fall back to the Find method, which will check what's already available locally in the DbContext, before going to the database if necessary.&lt;/p&gt;
+&lt;p&gt;With these two methods available in each Repository, the calling code can specify exactly which parts of an object should be included, providing quite a neat solution to the problem.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>entity framework</category>
+    <category>linq</category>
+  </categories>
+  <comments>
+    <comment isAdmin="false" id="d23a5891-c282-4956-bb2e-c6452387ef63">
+      <author>George</author>
+      <email>me@georgediab.com</email>
+      <date>2012-06-11 18:42:13</date>
+      <content>This is perfect, but then how does one write the controller to handle all the different ways an object and it&amp;#39;s children want to be requested? Is it a matter of creating an CustomerOrderController and a CustomerOrderLineItemsController?</content>
+    </comment>
+    <comment isAdmin="true" id="ac2a0ada-cad9-49cd-977e-df94ca378fbc">
+      <author>Steve Moss</author>
+      <email>smoss@appetere.com</email>
+      <date>2012-06-11 21:20:14</date>
+      <content>@George. Good question but my answer would be, &amp;quot;it depends&amp;quot;. In this example you would probably only get the LineItems in the context of an Order, so you might only have a CustomerOrderController. If the Order can be considered an &amp;quot;aggregate&amp;quot; and you only access LineItems through the &amp;quot;aggregate-root&amp;quot;, this would make sense.</content>
+    </comment>
+    <comment isAdmin="false" id="90efa1f7-99fc-4b2f-b87c-f0deb8e31f5f">
+      <author>George</author>
+      <email>me@georgediab.com</email>
+      <date>2012-06-12 03:5:51</date>
+      <content>Makes sense. Here&amp;#39;s another twist. Let&amp;#39;s say I want to Load customers which has a child object of addresses. is there something I&amp;#39;d need to do to load Customer and it&amp;#39;s children when requesting Order?</content>
+    </comment>
+    <comment isAdmin="false" id="9222963e-b97c-40da-b65d-c6da5a0fabc8">
+      <author>Emanuel</author>
+      <email>emanuel_v.z@hotmail.com</email>
+      <date>2015-05-05 13:44:44</date>
+      <content>Perfect post, genius!</content>
+    </comment>
+    <comment isAdmin="false" id="c58be061-da19-4178-9f34-80888241c37c">
+      <author>VJenks</author>
+      <email>zambizzi@gmail.com</email>
+      <date>2015-06-01 23:16:50</date>
+      <content>YES! So glad I found this. I was stumbling around trying to figure out how to use params to send a varying number of tables in but not quite getting it right. Generic it up and stuff it in your repository base class, and you&amp;#39;re good to go! THANKS!</content>
+    </comment>
+  </comments>
+</post>

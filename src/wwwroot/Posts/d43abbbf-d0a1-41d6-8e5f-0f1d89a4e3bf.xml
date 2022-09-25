@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Collection initializers without “new” keyword</title>
+  <slug>collection-initializers-without-new-keyword</slug>
+  <pubDate>2017-12-17 12:14:06</pubDate>
+  <lastModified>2022-09-25 12:11:59</lastModified>
+  <excerpt>What looks like a C# collection initializer without a "new" keyword, is in  fact a collection appender.</excerpt>
+  <content>&lt;p&gt;I came across this syntax recently where it &lt;em&gt;looked&lt;/em&gt; like a C# collection was being initialized without the &amp;ldquo;new&amp;rdquo; keyword.&lt;/p&gt;
+&lt;p&gt;For example, if we have a class:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;{
+    public ICollection&amp;lt;string&amp;gt; PrivateNames { get; } = new List&amp;lt;string&amp;gt; { "Mike" };
+
+    public Names()
+    {  }
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This was being used as:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;var names = new Names
+{
+    PrivateNames = { "Steve", "John" }
+};&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In fact, this is not a collection initializer at all.&amp;nbsp; It is shorthand ( syntactic sugar ) for &lt;em&gt;appending items to a collection.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;This test shows the appending behaviour:&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;[Test]
+public void InitializerWithoutNewAddsNames()
+{
+    var names = new Names
+    {
+        PrivateNames = { "Steve", "John" }
+    };
+
+    Assert.AreEqual("Mike, Steve, John", string.Join(", ", names.PrivateNames));
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: it is quite a specific shortcut.&amp;nbsp; The collection must already have been created and it only works when creating a new instance.&lt;/p&gt;
+&lt;p&gt;If you try to use the syntax outside of the new statement, eg&lt;/p&gt;
+&lt;pre class="language-csharp"&gt;&lt;code&gt;names.PrivateNames = { "Sarah", "Jenny"};&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;this will not compile.&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>c#</category>
+  </categories>
+  <comments></comments>
+</post>

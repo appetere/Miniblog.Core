@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>Using git on Windows</title>
+  <slug>using-git-on-windows</slug>
+  <author></author>
+  <pubDate>2017-09-09 20:27:00</pubDate>
+  <lastModified>2017-09-10 16:54:14</lastModified>
+  <excerpt></excerpt>
+  <content>&lt;p&gt;I took delivery of a new laptop at work this work and thought it a good time to take stock of the different ways of using git on Windows.&lt;/p&gt; &lt;h2&gt;What’s available?&lt;/h2&gt; &lt;table cellspacing="0" cellpadding="0" width="400" border="1"&gt; &lt;tbody&gt; &lt;tr&gt; &lt;td valign="top" width="66"&gt;Product&lt;/td&gt; &lt;td valign="top" width="66"&gt;Command line&lt;/td&gt; &lt;td valign="top" width="66"&gt;GUI&lt;/td&gt; &lt;td valign="top" width="66"&gt;Shell integration&lt;/td&gt; &lt;td valign="top" width="66"&gt;3rd party integration&lt;/td&gt; &lt;td valign="top" width="66"&gt;Authentication&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt; &lt;td valign="top" width="66"&gt;git for windows&lt;br&gt;&lt;a title="https://git-for-windows.github.io/" href="https://git-for-windows.github.io/"&gt;https://git-for-windows.github.io/&lt;/a&gt;&lt;/td&gt; &lt;td valign="top" width="66"&gt;Git BASH&lt;/td&gt; &lt;td valign="top" width="66"&gt;Git GUI&lt;/td&gt; &lt;td valign="top" width="66"&gt;Yes&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt; &lt;td valign="top" width="66"&gt;GitHub Desktop client&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt; &lt;td valign="top" width="66"&gt;Git Extensions&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt; &lt;td valign="top" width="66"&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt; &lt;p&gt;&amp;nbsp;&lt;/p&gt; &lt;p&gt;&amp;nbsp;&lt;/p&gt; &lt;p&gt;GitExtensions&lt;/p&gt; &lt;p&gt;&amp;nbsp;&lt;/p&gt; &lt;p&gt;Integrations&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;Visual Studio&lt;/p&gt; &lt;p&gt;Visual Studio Code&lt;/p&gt;&lt;/blockquote&gt; &lt;p&gt;&amp;nbsp;&lt;/p&gt; &lt;p&gt;Security&lt;/p&gt; &lt;p&gt;&amp;nbsp;&lt;/p&gt; &lt;p&gt;Merge and Diff Tools&lt;/p&gt; &lt;p&gt;&amp;nbsp;&lt;/p&gt; &lt;p&gt;What git remotes do I need to connect to?&lt;/p&gt;</content>
+  <ispublished>false</ispublished>
+  <categories></categories>
+  <comments></comments>
+</post>

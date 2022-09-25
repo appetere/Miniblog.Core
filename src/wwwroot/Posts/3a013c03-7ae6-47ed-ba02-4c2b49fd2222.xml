@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<post>
+  <title>How to renew Access Tokens</title>
+  <slug>how-to-renew-access-tokens</slug>
+  <pubDate>2016-04-09 13:25:38</pubDate>
+  <lastModified>2022-09-25 12:12:16</lastModified>
+  <excerpt>Access Tokens are often short-lived and need renewing when they expire.  This article is about how to do this and explains that Refresh Tokens are probably not what you should be using.</excerpt>
+  <content>&lt;p&gt;Access Tokens are often short-lived and need renewing when they expire.&amp;nbsp; This article is about how to do this and explains that Refresh Tokens are probably &lt;strong&gt;not&lt;/strong&gt; what you should be using.&lt;/p&gt;
+&lt;h2&gt;Renewing Access Tokens when the User is there&lt;/h2&gt;
+&lt;h3&gt;Single Page App (SPA)&lt;/h3&gt;
+&lt;p&gt;Say we have a SPA running in a browser, which uses Access Tokens to access an API resource.&lt;/p&gt;
+&lt;p&gt;The User has to first authenticate with the OpenID Connect Provider (OCP).&amp;nbsp; This involves making a request to the OCP&amp;rsquo;s Authorization Endpoint which if successful will set an Authentication Cookie and return an Identity Token and Access Token in the response.&lt;/p&gt;
+&lt;p&gt;Then the Access Token can be used in requests to a resource&amp;rsquo;s API by setting it in the request&amp;rsquo;s Authorization Header:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/a3ab18a5-1b1d-4c8b-8926-93342ee7333d.png"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border-width: 0px;" title="image" src="http://appetere.com/posts/files/46cfc6a3-b85f-4481-b689-e7ab70c410d3.png" alt="image" width="526" height="424" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The Access Token is usually short-lived, so will need replacing when it expires.&amp;nbsp; You might actively track the expiry in the SPA, or just keep sending it to the API until you get a 401 Unauthorized response.&amp;nbsp; Either way, you will then need to get a new Access Token.&lt;/p&gt;
+&lt;h3&gt;Renewing the Access Token&lt;/h3&gt;
+&lt;p&gt;The correct mechanism to get a new Access Token here is simply to repeat the request you made initially to the Authorization Endpoint.&amp;nbsp; Since you already have an Authentication Cookie from the OpenID Connect Provider (OCP) that proves your identity, the OCP can skip the authentication dialogue, and just return you a new set of tokens.&lt;/p&gt;
+&lt;p&gt;Eventually the Authentication Cookie will itself expire, at which point the User will be required to authenticate again before any further tokens can be issued.&lt;/p&gt;
+&lt;h2&gt;Renewing Access Token when the User is not there&lt;/h2&gt;
+&lt;h3&gt;Using with long-running services&lt;/h3&gt;
+&lt;p&gt;The use-case here is where the User wants to allow some process to do work for them, when they are not there.&amp;nbsp; For example we might have an application that monitors Twitter for particular hash-tags and sends the User a notification when the tags are found.&lt;/p&gt;
+&lt;p&gt;Such a process might run for days or weeks, whereas the original Access Token might only have a lifetime measured in hours.&lt;/p&gt;
+&lt;p&gt;So we have to give the application permission to work on behalf of the User when the User is offline.&lt;/p&gt;
+&lt;h3&gt;Refresh Tokens&lt;/h3&gt;
+&lt;p&gt;The mechanism to do this is to include an &lt;code&gt;offline_access&lt;/code&gt; scope when the User makes the initial request to the Authorization Endpoint.&amp;nbsp; This will return a Refresh Token (in addition to the Identity and Access Tokens).&amp;nbsp;&lt;/p&gt;
+&lt;p&gt;New Access Tokens can then be requested by making requests to the OCP&amp;rsquo;s Token Endpoint, including the Refresh Token in the request.&lt;/p&gt;
+&lt;h3&gt;Security Issues&lt;/h3&gt;
+&lt;p&gt;But here we have a potential security problem.&amp;nbsp; If the Refresh Token gets hijacked somehow a malicious User could keep requesting Access Tokens and gain perpetual access to another User&amp;rsquo;s resources.&lt;/p&gt;
+&lt;p&gt;For this reason, Refresh Tokens should only be issued to server-side Clients that we control, and never to Clients out in the wild (like a SPA in a browser) where hijacking a token is at least possible.&lt;/p&gt;
+&lt;p&gt;This means Refresh Tokens should only be requested when using Authorization Code Flow (or the equivalent server-side part of Hybrid Flow).&lt;/p&gt;
+&lt;p&gt;In the simplified Authorization Code Flow diagram below the key thing to note is that only the completely opaque (meaningless) Authorization Code is passed around the public parts of the system.&amp;nbsp; Only the Client that requested the Refresh Token (the Web Application) is allowed to exchange the Authorization Code for the tokens over a secure back-channel:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/f1b95071-d4ea-42a8-8f95-70db9d4dd4f0.png"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border: 0px;" title="image" src="http://appetere.com/posts/files/af58f7ca-19bf-46a1-8bca-dc8ecb93fbaf.png" alt="image" width="523" height="417" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;Using the Refresh Token&lt;/h3&gt;
+&lt;p&gt;Once the Refresh Token is received it can then be passed to whatever trusted-service that is going to be running on behalf of the User.&lt;/p&gt;
+&lt;p&gt;Whenever the Access Token expires, the service can then request a new one from the OCP, and provided the User has not been revoked, or the granted permissions changed, a new one will be issued:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://appetere.com/posts/files/89dfab21-ebe5-45ec-91e0-10c7653bbf50.png"&gt;&lt;img style="background-image: none; padding-top: 0px; padding-left: 0px; display: inline; padding-right: 0px; border: 0px;" title="image" src="http://appetere.com/posts/files/c8cf127e-573c-416a-b217-6a8988a45eb9.png" alt="image" width="524" height="435" border="0"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Of course, SSL should be used for all requests in this process, eliminating the chance of the token being hijacked during communication between our trusted systems.&lt;/p&gt;
+&lt;h2&gt;More information&lt;/h2&gt;
+&lt;p&gt;&lt;a title="http://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess" href="http://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess"&gt;http://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess&lt;/a&gt;&lt;/p&gt;</content>
+  <ispublished>true</ispublished>
+  <categories>
+    <category>openid connect</category>
+  </categories>
+  <comments></comments>
+</post>
