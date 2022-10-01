@@ -71,6 +71,7 @@
                     // Add more from list at https://prismjs.com/#supported-languages
                     { text: 'C#', value: 'csharp' },
                     { text: 'CSS', value: 'css' },
+                    { text: 'F#', value: 'fsharp' },
                     { text: 'Haskell', value: 'haskell' },
                     { text: 'HTML/XML', value: 'markup' },
                     { text: 'JavaScript', value: 'javascript' },

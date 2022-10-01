@@ -91,7 +91,7 @@
     }
 
     @section Preload {
-        @* This lazy loads the stylesheet in a non-render blocking way *@
+        @* See site.js for conversion to rel="stylesheet"" *@
         @if (settings.Value.DisplayComments)
         {
             <link rel="preload" href="~/css/comments.scss" as="style" />
@@ -99,15 +99,25 @@
         }
         @if (isCodePreview)
         {
-            <link rel="preload" href="~/lib/prism/prism.scss" as="style" />
-            <script src="~/lib/prism/prism.js" async defer></script>
+            @*TODO Add fallback if CDN not available*@
+            @*<link rel="preload" href="~/lib/prism/prism.scss" as="style" />
+            <noscript><link rel="stylesheet" href="~/lib/prism/prism.scss" /></noscript>*@            
+            <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.css" />
         }
     }
 }
 
-@if (User.Identity.IsAuthenticated)
-{
-    @section Scripts {
+@section Scripts {
+    @if (showFullPost && isCodePreview)
+    {
+        @*TODO Add fallback if CDN not available*@
+        @*<script src="~/lib/prism/prism.js" async defer></script>*@
+        <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+	    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.js"></script>
+    }
+
+    @if (User.Identity.IsAuthenticated)
+    {
         <script src="~/js/admin.js" async defer></script>
         <link rel="stylesheet" href="~/css/admin.scss" />
     }

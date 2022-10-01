@@ -1,4 +1,4 @@
-﻿@inject IOptionsSnapshot<BlogSettings> settings
+@inject IOptionsSnapshot<BlogSettings> settings
 @inject WebManifest manifest
 @{
     var host = $"{Context.Request.Scheme}://{Context.Request.Host}";
@@ -12,10 +12,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="preload" href="~/js/site.js" as="script" />
+
+    @* Ensure this is first stylesheet in the DOM so other stylesheets (eg for Prism)
+       can override styles. Note: links using preload are converted to stylesheets by
+       site.js in the order they appear in the DOM.
+       The `inline` attribute on `link` embeds the CSS into the page, server-side.*@
+    <link rel="stylesheet" href="~/css/abovethefold.scss" inline />
+
     <link rel="preload" href="~/css/belowthefold.scss" as="style" />
     <noscript><link rel="stylesheet" href="~/css/belowthefold.scss" /></noscript>
+
     @RenderSection(Constants.Preload, required: false)
-    <link rel="stylesheet" href="~/css/abovethefold.scss" inline />
 
     <meta property="og:type" content="article" />
     <meta property="og:title" content="@ViewData[Constants.Title]" />
@@ -80,11 +87,9 @@
         </div>
     </footer>
 
-    @* This lazy loads the stylesheet in a non-render blocking way *@
-    <link rel="preload" href="~/css/belowthefold.scss" as="style" />
-    <noscript><link rel="stylesheet" href="~/css/belowthefold.scss" /></noscript>
-
+    @*See https://javascript.info/script-async-defer*@
     <script src="~/js/site.js" async defer></script>
+
     @RenderSection(Constants.Scripts, required: false)
 </body>
 </html>
