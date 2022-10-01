@@ -250,7 +250,7 @@ namespace Miniblog.Core.Controllers
 
         private async Task SaveFilesToDisk(Post post)
         {
-            var imgRegex = new Regex("<img[^>]+ />", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var imgRegex = new Regex("<img[^>]+>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             var base64Regex = new Regex("data:[^/]+/(?<ext>[a-z]+);base64,(?<base64>.+)", RegexOptions.IgnoreCase);
             var allowedExtensions = new[] {
               ".jpg",
@@ -268,7 +268,7 @@ namespace Miniblog.Core.Controllers
                 }
 
                 var doc = new XmlDocument();
-                doc.LoadXml($"<root>{match.Value}</root>");
+                doc.LoadXml($"<root>{match.Value}</img></root>");
 
                 var img = doc.FirstChild.FirstChild;
                 var srcNode = img.Attributes["src"];
