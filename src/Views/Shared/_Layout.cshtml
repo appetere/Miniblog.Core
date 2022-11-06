@@ -16,7 +16,7 @@
     @* Ensure this is first stylesheet in the DOM so other stylesheets (eg for Prism)
        can override styles. Note: links using preload are converted to stylesheets by
        site.js in the order they appear in the DOM.
-       The `inline` attribute on `link` embeds the CSS into the page, server-side.*@
+       For inline attribute see https://github.com/ligershark/WebOptimizer#inlining-content.*@
     <link rel="stylesheet" href="~/css/abovethefold.scss" inline />
 
     <link rel="preload" href="~/css/belowthefold.scss" as="style" />
