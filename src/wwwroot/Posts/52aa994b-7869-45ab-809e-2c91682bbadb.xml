@@ -2,8 +2,8 @@
 <post>
   <title>Generate all combinations of a sequence</title>
   <slug>generate-all-combinations-of-a-sequence</slug>
-  <pubDate>2021-10-30 15:18:53</pubDate>
-  <lastModified>2022-09-25 12:20:08</lastModified>
+  <pubDate>2021-10-30T14:18:53.000Z</pubDate>
+  <lastModified>2022-10-02T08:13:44.734Z</lastModified>
   <excerpt>Various approaches to turning a sequence of characters into every possible combination of those characters.</excerpt>
   <content>&lt;p&gt;This is an update to a post I originally published in February 2016, and shows how functional-programming wins out over imperative programming for writing this sort of algorithm.&lt;/p&gt;
 &lt;p&gt;The goal was: given a collection of things, eg &amp;ldquo;A&amp;rdquo;, &amp;ldquo;B&amp;rdquo; and &amp;ldquo;C&amp;rdquo;, get every possible combination, where a different order is considered a different combination, using C#.&lt;/p&gt;
@@ -145,5 +145,8 @@ Seq.iter (fun result -&amp;gt; printfn "%A" result) results&lt;/code&gt;&lt;/pre
   <categories>
     <category>c#</category>
   </categories>
+  <tags>
+    <tag>language-ext</tag>
+  </tags>
   <comments></comments>
 </post>
