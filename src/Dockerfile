@@ -11,7 +11,7 @@ RUN dotnet publish -c Release -o out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
+ENV ASPNETCORE_URLS=http://+:8080
 WORKDIR /App
 COPY --from=build-env /App/out .
-ENV ASPNETCORE_URLS=http://*:8080
 ENTRYPOINT ["dotnet", "Miniblog.Core.dll"]
