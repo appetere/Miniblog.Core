@@ -1,6 +1,6 @@
 {
-  "name": "Miniblog.Core",
-  "short_name": ".NET Core C# software developer in Dorset",
+  "name": ".NET Core C# software developer in Dorset",
+  "short_name": "Steve Moss",
   "description": "Blog on .NET Core software development in C#, with focus on functional programming",
   "icons": [
     {
