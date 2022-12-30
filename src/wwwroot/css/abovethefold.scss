@@ -33,7 +33,7 @@ body {
 .siteheader {
     background-color: $banner-color;
     color: white;
-    text-align: right;
+    text-align: left;
     margin-bottom: 1.5em;
     padding: 1.5em 1.5em 1.5em 1.5em;
 
@@ -47,8 +47,7 @@ body {
     }
 
     .logo {
-        float: left;
-        width: 50%;
+        height:80px;
     }
 }
 

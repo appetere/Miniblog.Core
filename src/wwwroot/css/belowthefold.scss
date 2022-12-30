@@ -152,7 +152,11 @@ noscript p {
         font-size: .9em;
     }
 }
-
+@media (min-width: 992px) {
+    .logo-echo {
+        background: #23567d no-repeat center url(../img/footer_bg.gif);        
+    }
+}
 @media print {
     @page {
         margin: 2cm;

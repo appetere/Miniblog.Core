@@ -49,11 +49,11 @@
 <body itemscope itemtype="http://schema.org/WebPage">
 
     <header class="siteheader" >
+        <a href="~/">
         <div class="container">
             <img src="~/img/WhiteLogo.svg" alt="Appetere Logo" class="logo"/>
-            <p itemprop="name"><a href="~/">Blog</a></p>
-            By <span itemprop="author">@settings.Value.Owner</span>
         </div>
+        </a>
     </header>
 
     <main itemprop="mainEntity" itemscope itemtype="http://schema.org/Blog" role="main">
@@ -63,7 +63,7 @@
         @RenderBody()
     </main>
 
-    <footer class="sitefooter">
+    <footer class="sitefooter logo-echo">
         <div class="container">
             <nav>
                 <ul>
