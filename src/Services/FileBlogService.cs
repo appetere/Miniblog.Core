@@ -21,7 +21,7 @@ namespace Miniblog.Core.Services
     {
         private const string FILES = "files";
 
-        private const string POSTS = "Posts";
+        private const string POSTS = "posts";
 
         private readonly List<Post> cache = new List<Post>();
 
