@@ -66,7 +66,7 @@
             window.tinymce.init({
                 selector: '#Content',
                 // autoresize_min_height: 200,
-                plugins: 'advlist anchor autosave code codesample directionality emoticons fullscreen image insertdatetime lists media nonbreaking pagebreak preview searchreplace table visualblocks visualchars wordcount',
+                plugins: 'advlist anchor autosave code codesample directionality emoticons fullscreen image insertdatetime link lists media nonbreaking pagebreak preview searchreplace table visualblocks visualchars wordcount',
                 codesample_languages: [
                     // Add more from list at https://prismjs.com/#supported-languages
                     { text: 'C#', value: 'csharp' },
@@ -82,11 +82,18 @@
                 ],
                 codesample_global_prismjs: true,
                 // menubar: "edit view format insert table",
-                toolbar: 'undo redo styles bold italic outdent indent codesample blockquote numlist bullist | visualblocks code fullscreen',
+                toolbar: 'undo redo styles bold italic outdent indent codesample blockquote link numlist bullist | visualblocks code fullscreen',
                 // selection_toolbar: 'bold italic | quicklink h2 h3 blockquote',
                 // autoresize_bottom_margin: 0,
                 // paste_data_images: true,
                 // image_advtab: true,
+
+                // https://www.tiny.cloud/docs/plugins/opensource/link/
+                default_link_target: '_blank',
+                rel_list: [
+                    { title: 'noopener', value: 'noopener' }
+                ],
+
                 file_picker_types: 'image',
                 file_picker_callback: (callback, value, meta) => {
 

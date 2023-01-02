@@ -3,7 +3,7 @@
   <title>How to resolve ambiguous C# extension methods</title>
   <slug>resolve-ambiguous-extension-methods</slug>
   <pubDate>2023-01-02T10:04:29.204Z</pubDate>
-  <lastModified>2023-01-02T10:34:27.031Z</lastModified>
+  <lastModified>2023-01-02T16:57:37.626Z</lastModified>
   <excerpt>How to help the C# compiler pick an extension method when there are multiple matching extension methods in the same namespace.</excerpt>
   <content>&lt;p&gt;Consider these two extension method signatures:&lt;/p&gt;
 &lt;pre class="language-csharp"&gt;&lt;code&gt;public static async Task&amp;lt;V&amp;gt; SelectMany&amp;lt;T, U, V&amp;gt;(
@@ -27,7 +27,7 @@ public Task&amp;lt;Validation&amp;lt;Error, int&amp;gt;&amp;gt; GetResult() =&am
     select x + y;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The compiler will try to find a &lt;code&gt;SelectMany&lt;/code&gt; implementation to bind together the rows of the LINQ query-syntax block, but, as used here, will report the choice is ambiguous.&lt;/p&gt;
 &lt;p&gt;One way to work around this is by using how the compiler searches for matching extension methods.&lt;/p&gt;
-&lt;p&gt;From the &lt;a href="https://github.com/dotnet/csharpstandard/blob/standard-v6/standard/expressions.md#11783-extension-method-invocations" rel="nofollow noreferrer"&gt;C# spec&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;From the &lt;a href="https://github.com/dotnet/csharpstandard/blob/standard-v6/standard/expressions.md#11783-extension-method-invocations" target="_blank" rel="noopener"&gt;C# spec&lt;/a&gt;&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;The search [..] proceeds as follows:&lt;/p&gt;
 &lt;p&gt;Starting with the closest enclosing namespace declaration, continuing with each enclosing namespace declaration, and ending with the containing compilation unit, successive attempts are made to find a candidate set of extension methods:&lt;/p&gt;
@@ -57,8 +57,8 @@ public static class BindDisambiguationExtensions
         Func&amp;lt;A, B, C&amp;gt; project) =&amp;gt;
         ValidationT_AsyncSync_Extensions.SelectMany(ma, bind, project);
 }&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Here I'm using &lt;code&gt;Task&amp;lt;Validation&amp;lt;&lt;/code&gt; but if the problem is with a different stacked monad (eg &lt;code&gt;Task&amp;lt;Either&amp;lt;&lt;/code&gt;) just check the&amp;nbsp;&lt;a href="https://github.com/louthy/language-ext/blob/main/LanguageExt.Transformers/HKT/AsyncSync/HKT.AsyncSync.Extensions.cs" rel="nofollow noreferrer"&gt;source-code&lt;/a&gt; for the extensions class name of the particular combination of stacked monads you are using.&lt;/p&gt;
-&lt;p&gt;Note: I have also posted this as an answer to a &lt;a href="https://stackoverflow.com/questions/52247863/language-ext-task-of-either-with-multiple-from-clauses/74810076#74810076" rel="nofollow noreferrer"&gt;stackoverflow question&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Here I'm using &lt;code&gt;Task&amp;lt;Validation&amp;lt;&lt;/code&gt; but if the problem is with a different stacked monad (eg &lt;code&gt;Task&amp;lt;Either&amp;lt;&lt;/code&gt;) just check the&amp;nbsp;&lt;a href="https://github.com/louthy/language-ext/blob/main/LanguageExt.Transformers/HKT/AsyncSync/HKT.AsyncSync.Extensions.cs" target="_blank" rel="noopener"&gt;source-code&lt;/a&gt; for the extensions class name of the particular combination of stacked monads you are using.&lt;/p&gt;
+&lt;p&gt;Note: I have also posted this as an answer to a &lt;a href="https://stackoverflow.com/questions/52247863/language-ext-task-of-either-with-multiple-from-clauses/74810076#74810076" target="_blank" rel="noopener"&gt;stackoverflow question&lt;/a&gt;.&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;</content>
   <ispublished>true</ispublished>
