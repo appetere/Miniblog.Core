@@ -3,7 +3,7 @@
   <title>How to resolve ambiguous C# extension methods</title>
   <slug>resolve-ambiguous-extension-methods</slug>
   <pubDate>2023-01-02T10:04:29.204Z</pubDate>
-  <lastModified>2023-01-02T16:57:37.626Z</lastModified>
+  <lastModified>2023-01-02T17:49:49.729Z</lastModified>
   <excerpt>How to help the C# compiler pick an extension method when there are multiple matching extension methods in the same namespace.</excerpt>
   <content>&lt;p&gt;Consider these two extension method signatures:&lt;/p&gt;
 &lt;pre class="language-csharp"&gt;&lt;code&gt;public static async Task&amp;lt;V&amp;gt; SelectMany&amp;lt;T, U, V&amp;gt;(
@@ -12,12 +12,12 @@
     Func&amp;lt;T, U, V&amp;gt; project) =&amp;gt; // etc
 
 public static Task&amp;lt;Validation&amp;lt;FAIL, C&amp;gt;&amp;gt; SelectMany&amp;lt;FAIL, A, B, C&amp;gt;(
-    this Task&amp;lt;Validation&amp;lt;FAIL, A&amp;gt;&amp;gt; ma,
+    this Task&amp;lt;Validation&amp;lt;FAIL, A&amp;gt;&amp;gt; self,
     Func&amp;lt;A, Task&amp;lt;Validation&amp;lt;FAIL, B&amp;gt;&amp;gt;&amp;gt; bind,
     Func&amp;lt;A, B, C&amp;gt; project) =&amp;gt; // etc
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;If both of these are in the same namespace then the compiler cannot always infer whether you meant &lt;code&gt;Task&amp;lt;V&amp;gt;&lt;/code&gt; or the more specific &lt;code&gt;Task&amp;lt;Validation&amp;lt;FAIL, C&amp;gt;&amp;gt;&lt;/code&gt; (where &lt;code&gt;V&lt;/code&gt; is &lt;code&gt;Validation&amp;lt;FAIL, C&amp;gt;&lt;/code&gt;).&lt;/p&gt;
-&lt;p&gt;These extensions are from the &lt;code&gt;LanguageExt&lt;/code&gt; library where they would typically be used in a LINQ query like:&lt;/p&gt;
+&lt;p&gt;This particular example is for extensions in the&amp;nbsp;&lt;code&gt;LanguageExt&lt;/code&gt; library, which would typically be used in a LINQ query like:&lt;/p&gt;
 &lt;pre class="language-csharp"&gt;&lt;code&gt;public Task&amp;lt;Validation&amp;lt;Error, int&amp;gt;&amp;gt; GetX() =&amp;gt; // etc
 public Task&amp;lt;Validation&amp;lt;Error, int&amp;gt;&amp;gt; GetY() =&amp;gt; // etc
 
@@ -25,7 +25,7 @@ public Task&amp;lt;Validation&amp;lt;Error, int&amp;gt;&amp;gt; GetResult() =&am
     from x from GetX()
     from y from GetY()
     select x + y;&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;The compiler will try to find a &lt;code&gt;SelectMany&lt;/code&gt; implementation to bind together the rows of the LINQ query-syntax block, but, as used here, will report the choice is ambiguous.&lt;/p&gt;
+&lt;p&gt;The compiler will try to find a &lt;code&gt;SelectMany&lt;/code&gt; implementation to bind together the rows of the LINQ query-syntax block, but, as used here, will report the choice is ambiguous.&amp;nbsp; Both extensions are in the &lt;code&gt;LanguageExt&lt;/code&gt; namespace (though one is in &lt;code&gt;LanguageExt.Core&lt;/code&gt; package and the other in &lt;code&gt;LanguageExt.Transformers&lt;/code&gt;) so adding &lt;code&gt;using LanguageExt&lt;/code&gt; brings both into scope.&lt;/p&gt;
 &lt;p&gt;One way to work around this is by using how the compiler searches for matching extension methods.&lt;/p&gt;
 &lt;p&gt;From the &lt;a href="https://github.com/dotnet/csharpstandard/blob/standard-v6/standard/expressions.md#11783-extension-method-invocations" target="_blank" rel="noopener"&gt;C# spec&lt;/a&gt;&lt;/p&gt;
 &lt;blockquote&gt;
@@ -36,8 +36,8 @@ public Task&amp;lt;Validation&amp;lt;Error, int&amp;gt;&amp;gt; GetResult() =&am
 &lt;/blockquote&gt;
 &lt;div class="answercell post-layout--right"&gt;
 &lt;div class="s-prose js-post-body"&gt;
-&lt;p&gt;So .. if you add your own version of the extension methods needed for the LINQ query syntax to work (&lt;code&gt;Select&lt;/code&gt; and &lt;code&gt;SelectMany&lt;/code&gt;) within your application, at the same or a higher level in the namespace hierarchy as the calling code, these will be used and the two ambiguous versions in the &lt;code&gt;LanguageExt&lt;/code&gt; namespace will never be considered.&lt;/p&gt;
-&lt;p&gt;Your extensions can just delegate to the generated source code in &lt;code&gt;LanguageExt.Transformers&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;So .. to pick one extension method you can add your own version of the extension methods within your application that just delegate to the external implementations you want to use.&amp;nbsp; These extensions have to be at the same or a higher level in the namespace hierarchy as the calling code so the compiler will select them first and (following the rules above) the two ambiguous versions in the &lt;code&gt;LanguageExt&lt;/code&gt; namespace will never be considered.&lt;/p&gt;
+&lt;p&gt;For the original example, where I wanted to use the extension for &lt;code&gt;Task&amp;lt;Validation&amp;lt;FAIL, C&amp;gt;&amp;gt;&lt;/code&gt; the extensions can just delegate to the generated source code in&amp;nbsp;&lt;code&gt;LanguageExt.Transformers&lt;/code&gt;:&lt;/p&gt;
 &lt;pre class="language-csharp"&gt;&lt;code&gt;using System;
 using System.Threading.Tasks;
 using LanguageExt;
@@ -47,17 +47,17 @@ namespace YourApplication;
 public static class BindDisambiguationExtensions
 {
     public static Task&amp;lt;Validation&amp;lt;FAIL, B&amp;gt;&amp;gt; Select&amp;lt;FAIL, A, B&amp;gt;(
-        this Task&amp;lt;Validation&amp;lt;FAIL, A&amp;gt;&amp;gt; ma,
+        this Task&amp;lt;Validation&amp;lt;FAIL, A&amp;gt;&amp;gt;self,
         Func&amp;lt;A, B&amp;gt; f) =&amp;gt;
-        ValidationT_AsyncSync_Extensions.Select(ma, f);
+        ValidationT_AsyncSync_Extensions.Select(self, f);
 
     public static Task&amp;lt;Validation&amp;lt;FAIL, C&amp;gt;&amp;gt; SelectMany&amp;lt;FAIL, A, B, C&amp;gt;(
-        this Task&amp;lt;Validation&amp;lt;FAIL, A&amp;gt;&amp;gt; ma,
+        this Task&amp;lt;Validation&amp;lt;FAIL, A&amp;gt;&amp;gt; self,
         Func&amp;lt;A, Task&amp;lt;Validation&amp;lt;FAIL, B&amp;gt;&amp;gt;&amp;gt; bind,
         Func&amp;lt;A, B, C&amp;gt; project) =&amp;gt;
-        ValidationT_AsyncSync_Extensions.SelectMany(ma, bind, project);
+        ValidationT_AsyncSync_Extensions.SelectMany(self, bind, project);
 }&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Here I'm using &lt;code&gt;Task&amp;lt;Validation&amp;lt;&lt;/code&gt; but if the problem is with a different stacked monad (eg &lt;code&gt;Task&amp;lt;Either&amp;lt;&lt;/code&gt;) just check the&amp;nbsp;&lt;a href="https://github.com/louthy/language-ext/blob/main/LanguageExt.Transformers/HKT/AsyncSync/HKT.AsyncSync.Extensions.cs" target="_blank" rel="noopener"&gt;source-code&lt;/a&gt; for the extensions class name of the particular combination of stacked monads you are using.&lt;/p&gt;
+&lt;p&gt;If you are using stacked monads in &lt;code&gt;LanguageExt&lt;/code&gt; then you may encounter similar issues with different combinations of types (eg &lt;code&gt;Task&amp;lt;Either&amp;lt;&lt;/code&gt;), in which case you can find the &lt;a href="https://github.com/louthy/language-ext/blob/main/LanguageExt.Transformers/HKT/AsyncSync/HKT.AsyncSync.Extensions.cs" target="_blank" rel="noopener"&gt;source-code&lt;/a&gt; for the extensions class name of the particular combination of stacked monads you are using and delegate to that.&lt;/p&gt;
 &lt;p&gt;Note: I have also posted this as an answer to a &lt;a href="https://stackoverflow.com/questions/52247863/language-ext-task-of-either-with-multiple-from-clauses/74810076#74810076" target="_blank" rel="noopener"&gt;stackoverflow question&lt;/a&gt;.&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;</content>
