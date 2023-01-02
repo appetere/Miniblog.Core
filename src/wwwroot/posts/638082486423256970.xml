@@ -3,7 +3,7 @@
   <title>How to resolve ambiguous C# extension methods</title>
   <slug>resolve-ambiguous-extension-methods</slug>
   <pubDate>2023-01-02T10:04:29.204Z</pubDate>
-  <lastModified>2023-01-02T10:14:39.634Z</lastModified>
+  <lastModified>2023-01-02T10:34:27.031Z</lastModified>
   <excerpt>How to help the C# compiler pick an extension method when there are multiple matching extension methods in the same namespace.</excerpt>
   <content>&lt;p&gt;Consider these two extension method signatures:&lt;/p&gt;
 &lt;pre class="language-csharp"&gt;&lt;code&gt;public static async Task&amp;lt;V&amp;gt; SelectMany&amp;lt;T, U, V&amp;gt;(
@@ -17,7 +17,7 @@ public static Task&amp;lt;Validation&amp;lt;FAIL, C&amp;gt;&amp;gt; SelectMany&a
     Func&amp;lt;A, B, C&amp;gt; project) =&amp;gt; // etc
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;If both of these are in the same namespace then the compiler cannot always infer whether you meant &lt;code&gt;Task&amp;lt;V&amp;gt;&lt;/code&gt; or the more specific &lt;code&gt;Task&amp;lt;Validation&amp;lt;FAIL, C&amp;gt;&amp;gt;&lt;/code&gt; (where &lt;code&gt;V&lt;/code&gt; is &lt;code&gt;Validation&amp;lt;FAIL, C&amp;gt;&lt;/code&gt;).&lt;/p&gt;
-&lt;p&gt;These extensions are from language-ext where they would typically be used in a LINQ query like:&lt;/p&gt;
+&lt;p&gt;These extensions are from the &lt;code&gt;LanguageExt&lt;/code&gt; library where they would typically be used in a LINQ query like:&lt;/p&gt;
 &lt;pre class="language-csharp"&gt;&lt;code&gt;public Task&amp;lt;Validation&amp;lt;Error, int&amp;gt;&amp;gt; GetX() =&amp;gt; // etc
 public Task&amp;lt;Validation&amp;lt;Error, int&amp;gt;&amp;gt; GetY() =&amp;gt; // etc
 
@@ -65,6 +65,8 @@ public static class BindDisambiguationExtensions
   <categories>
     <category>c#</category>
   </categories>
-  <tags></tags>
+  <tags>
+    <tag>language-ext</tag>
+  </tags>
   <comments></comments>
 </post>
