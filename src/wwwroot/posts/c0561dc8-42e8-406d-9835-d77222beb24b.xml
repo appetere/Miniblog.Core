@@ -3,13 +3,13 @@
   <title>How to use C# Interactive</title>
   <slug>how-to-use-csharp-interactive</slug>
   <pubDate>2019-12-26T18:20:39.000Z</pubDate>
-  <lastModified>2023-01-08T21:31:43.066Z</lastModified>
+  <lastModified>2023-01-08T21:40:46.551Z</lastModified>
   <excerpt>Introduction to using C# Interactive to run C# line-by-line or from scripts.</excerpt>
   <content>&lt;p&gt;C# Interactive is a handy tool for quickly running a piece of code, either line by line or from a script.&lt;/p&gt;
 &lt;p&gt;The &lt;strong&gt;C# Interactive window&lt;/strong&gt; in Visual Studio is opened from:&lt;/p&gt;
 &lt;pre class="language-plain"&gt;&lt;code&gt;View =&amp;gt; Other Windows =&amp;gt; C# Interactive&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Type in one block of C# at a time, terminating with a &lt;code&gt;;&lt;/code&gt; when the block is complete, eg:&lt;/p&gt;
-&lt;p&gt;&lt;img src="/posts/files/a3466acd-2b52-435b-906b-bd2435ffac24_638088095496079036.png" alt="" width="424" height="217"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="/posts/files/a3466acd-2b52-435b-906b-bd2435ffac24.png" alt="" width="424" height="217"&gt;&lt;/p&gt;
 &lt;p&gt;The same code can also be executed from the command line, without running Visual Studio.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Open the &lt;strong&gt;Developer Command Prompt for Visual Studio&lt;/strong&gt; (which will ensure required paths are set-up for you).&lt;/li&gt;
