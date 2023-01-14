@@ -10,6 +10,7 @@ namespace Miniblog.Core.Controllers
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Net;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Xml;
@@ -205,6 +206,36 @@ namespace Miniblog.Core.Controllers
         [Route("/post/{slug}")]
         [HttpGet]
         public IActionResult Redirects(string slug) => this.LocalRedirectPermanent($"/blog/{slug}");
+
+        /// <remarks>Redirect the old Appetere mini-blog root page</remarks>
+        [Route("/blog")]
+        [HttpGet]
+        public IActionResult Redirects() => this.LocalRedirectPermanent($"/");
+
+        /// <remarks>Redirect old Kentico blog URLs (yes, still being requested!)</remarks>
+        [Route("/blogs/stevem/{date}/{slug}")]
+        [HttpGet]
+        public IActionResult RedirectKentico(string slug) =>
+            slug.ToLower() switch
+            {
+                "identity-impersonation-with-iis-and-asp-net" =>
+                    this.LocalRedirectPermanent($"/blog/introduction-to-identity-impersonation-with-iis-and-aspnet"),
+
+                "working_with_viewstate.aspx" =>
+                    this.LocalRedirectPermanent("/blog/working-with-viewstate"),
+
+                "tweet-button-web-part-for-kentico-cms.aspx" =>
+                    this.StatusCode((int)HttpStatusCode.Gone),
+
+                "appetere_registered_as_kentico_partner.aspx" =>
+                    this.StatusCode((int)HttpStatusCode.Gone),
+
+                var s when s.EndsWith(".aspx") =>
+                    this.LocalRedirectPermanent($"/blog/{slug.Remove(slug.Length - 5, 5)}"),
+
+                _ => this.LocalRedirectPermanent($"/blog/{slug}")
+            };
+
 
         [Route("/blog/{slug?}")]
         [HttpPost, Authorize, AutoValidateAntiforgeryToken]
