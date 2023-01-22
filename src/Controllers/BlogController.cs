@@ -202,7 +202,7 @@ namespace Miniblog.Core.Controllers
             return post is null ? this.NotFound() : (IActionResult)this.View(post);
         }
 
-        /// <remarks>This is for redirecting potential existing URLs from the old Miniblog URL format.</remarks>
+        /// <remarks>Redirect URLs from the old Miniblog URL format.</remarks>
         [Route("/post/{slug}")]
         [HttpGet]
         public IActionResult Redirects(string slug) => this.LocalRedirectPermanent($"/blog/{slug}");

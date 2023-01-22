@@ -51,6 +51,17 @@ namespace Miniblog.Core
             else
             {
                 app.UseExceptionHandler("/Shared/Error");
+
+                app.Use(
+                    (context, next) =>
+                    {
+                        // Set scheme to https so URLs are generated correctly:
+                        // "Cloud Run redirects all HTTP requests to HTTPS but terminates TLS before they reach your web service"
+                        // https://cloud.google.com/run/docs/triggering/https-request
+                        context.Request.Scheme = "https";
+                        return next();
+                    });
+
                 app.UseHsts();
             }
 
