@@ -4,6 +4,7 @@ namespace Miniblog.Core
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Rewrite;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -71,6 +72,8 @@ namespace Miniblog.Core
                     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
                     return next();
                 });
+
+            app.UseRewriter(new RewriteOptions().AddRedirectToNonWwwPermanent());
 
             app.UseStatusCodePagesWithReExecute("/Shared/Error");
             app.UseWebOptimizer();
