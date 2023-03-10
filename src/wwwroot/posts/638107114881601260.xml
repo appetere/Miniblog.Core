@@ -3,9 +3,12 @@
   <title>Compiler generated code for a C# record</title>
   <slug>compiler-generated-csharp-for-record</slug>
   <pubDate>2023-02-12T21:40:00.000Z</pubDate>
-  <lastModified>2023-02-12T21:38:20.278Z</lastModified>
+  <lastModified>2023-03-10T21:02:01.047Z</lastModified>
   <excerpt>C# records are shortcuts (or syntactic sugar) for generating classes or structs. Here I show the generated code, which may help understand when and how records should be used.</excerpt>
-  <content>&lt;h1&gt;What is compiler-generated code?&lt;/h1&gt;
+  <content>&lt;p&gt;The C#&amp;nbsp;&lt;code&gt;record&lt;/code&gt; type, originally introduced in C# 9, is particularly useful for immutable data.&amp;nbsp; It has a very terse syntax to create, and adds useful functionality like value-equality and non-destructive mutation.&lt;/p&gt;
+&lt;p&gt;The &lt;a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record" target="_blank" rel="noopener"&gt;Microsoft documentation&lt;/a&gt; explains &lt;em&gt;what&lt;/em&gt; you can do with a &lt;code&gt;record&lt;/code&gt; but it doesn't show &lt;em&gt;how&lt;/em&gt; the record does this.&lt;/p&gt;
+&lt;p&gt;This post examines the compiler-generated code that is created for the different types of &lt;code&gt;record&lt;/code&gt;.&amp;nbsp; I find being aware of this makes it easier to understand when it is appropriate to use a &lt;code&gt;record&lt;/code&gt; and how to extend it when you need more than the default functionality.&lt;/p&gt;
+&lt;h1&gt;What is compiler-generated code?&lt;/h1&gt;
 &lt;p&gt;To make writing C# code more efficient, the compiler allows us to use a terse syntax for common patterns.&amp;nbsp; Then when compiling, it expands this syntax into the code required to actually run the program.&lt;/p&gt;
 &lt;p&gt;For example, when you add a property to a class using:&lt;/p&gt;
 &lt;pre class="language-csharp"&gt;&lt;code&gt;public string MyProperty { get; set; }&lt;/code&gt;&lt;/pre&gt;
