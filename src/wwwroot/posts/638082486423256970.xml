@@ -3,7 +3,7 @@
   <title>How to resolve ambiguous C# extension methods</title>
   <slug>resolve-ambiguous-extension-methods</slug>
   <pubDate>2023-01-02T10:04:29.204Z</pubDate>
-  <lastModified>2023-01-02T17:49:49.729Z</lastModified>
+  <lastModified>2024-09-04T08:59:59.442Z</lastModified>
   <excerpt>How to help the C# compiler pick an extension method when there are multiple matching extension methods in the same namespace.</excerpt>
   <content>&lt;p&gt;Consider these two extension method signatures:&lt;/p&gt;
 &lt;pre class="language-csharp"&gt;&lt;code&gt;public static async Task&amp;lt;V&amp;gt; SelectMany&amp;lt;T, U, V&amp;gt;(
@@ -22,8 +22,8 @@ public static Task&amp;lt;Validation&amp;lt;FAIL, C&amp;gt;&amp;gt; SelectMany&a
 public Task&amp;lt;Validation&amp;lt;Error, int&amp;gt;&amp;gt; GetY() =&amp;gt; // etc
 
 public Task&amp;lt;Validation&amp;lt;Error, int&amp;gt;&amp;gt; GetResult() =&amp;gt;
-    from x from GetX()
-    from y from GetY()
+    from x in GetX()
+    from y in GetY()
     select x + y;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The compiler will try to find a &lt;code&gt;SelectMany&lt;/code&gt; implementation to bind together the rows of the LINQ query-syntax block, but, as used here, will report the choice is ambiguous.&amp;nbsp; Both extensions are in the &lt;code&gt;LanguageExt&lt;/code&gt; namespace (though one is in &lt;code&gt;LanguageExt.Core&lt;/code&gt; package and the other in &lt;code&gt;LanguageExt.Transformers&lt;/code&gt;) so adding &lt;code&gt;using LanguageExt&lt;/code&gt; brings both into scope.&lt;/p&gt;
 &lt;p&gt;One way to work around this is by using how the compiler searches for matching extension methods.&lt;/p&gt;
