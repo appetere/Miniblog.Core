@@ -31,7 +31,7 @@ public void InitializerWithoutNewAddsNames()
     Assert.AreEqual("Mike, Steve, John", string.Join(", ", names.PrivateNames));
 }&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Note: it is quite a specific shortcut.&amp;nbsp; The collection must already have been created and it only works when creating a new instance.&lt;/p&gt;
-&lt;p&gt;If you try to use the syntax outside of the new statement, eg&lt;/p&gt;
+&lt;p&gt;If you try to use the syntax outside of the new statement, eg:&lt;/p&gt;
 &lt;pre class="language-csharp"&gt;&lt;code&gt;names.PrivateNames = { "Sarah", "Jenny"};&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;this will not compile.&lt;/p&gt;</content>
   <ispublished>true</ispublished>
