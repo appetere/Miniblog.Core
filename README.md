@@ -1,6 +1,7 @@
 # Blog engine for ASP.NET Core 3.1
 
 **3/8/2025 How to deploy**
+
 Deleted the service in Cloud Run today (3/8/2025).
 
 If need to deploy again, Google Cloud Build is setup to deploy to Cloud Run (see inline .yaml in the trigger).  Simply make a change to the repo and push and it should trigger the build and deployment.
@@ -12,7 +13,7 @@ The Cloud Run service will be created, but by default requires authentication (a
 Note this all assumes appetere.com domain is still valid and Google Cloud account still live.
 
 
-**Miniblog readme original text"
+**Miniblog readme original text**
 
 A full-featured yet simple blog engine built on ASP.NET Core 3.1.
 
