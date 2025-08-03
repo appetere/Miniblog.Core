@@ -1,5 +1,9 @@
 # Blog engine for ASP.NET Core 3.1
 
+3/8/2025 How to deploy
+Google Cloud Build is setup to deploy to Cloud Run.  Simply make a change to the repo and push and it should trigger the build and deployment.
+
+
 A full-featured yet simple blog engine built on ASP.NET Core 3.1.
 
 Please be aware that [Mads is taking pull requests, but is not actively working on it](https://github.com/madskristensen/Miniblog.Core/issues/159#issuecomment-765629584).
